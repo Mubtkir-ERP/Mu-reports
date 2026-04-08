@@ -1,0 +1,18 @@
+Customer Balances by Sales Person,أرصدة العملاء حسب المندوب
+Company,الشركة
+Sales Person,مندوب المبيعات
+From Date,من تاريخ
+To Date,إلى تاريخ
+Customer,العميل
+Customer Name,اسم العميل
+Customer Group,مجموعة العملاء
+Territory,المنطقة
+Opening Balance,الرصيد الافتتاحي
+Invoiced Amount,المبلغ المفوتر
+Paid Amount,المبلغ المدفوع
+Credit Note,إشعار دائن
+Closing Balance,الرصيد الختامي
+Currency,العملة
+Company is mandatory,الشركة إلزامية
+Sales Person is mandatory,مندوب المبيعات إلزامي
+From Date must be before To Date,من تاريخ يجب أن يكون قبل إلى تاريخ
