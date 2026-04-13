@@ -174,6 +174,13 @@ class PartyLedgerSummaryReport:
 					"fieldtype": "Link",
 					"options": "Territory",
 				},
+				{
+					"label": _("Sales Person"),
+					"fieldname": "sales_person",
+					"fieldtype": "Link",
+					"options": "Sales Person",
+					"width": 150,
+				},
 			]
 		else:
 			columns += [
@@ -247,21 +254,56 @@ class PartyLedgerSummaryReport:
 
 		return columns
 
+	def get_customer_sales_persons(self):
+		"""Get the primary sales person for each customer from Sales Team"""
+		if not self.parties:
+			return {}
+		
+		# Get sales persons from Customer's Sales Team
+		sales_team = frappe.db.sql("""
+			SELECT 
+				parent as customer,
+				sales_person
+			FROM `tabSales Team`
+			WHERE 
+				parenttype = 'Customer'
+				AND parent IN %(customers)s
+			ORDER BY parent, idx
+		""", {"customers": self.parties}, as_dict=1)
+		
+		# Create a dict with first sales person for each customer
+		customer_sales_persons = {}
+		for row in sales_team:
+			if row.customer not in customer_sales_persons:
+				customer_sales_persons[row.customer] = row.sales_person
+		
+		return customer_sales_persons
+
 	def get_data(self):
 		company_currency = frappe.get_cached_value("Company", self.filters.get("company"), "default_currency")
 		invoice_dr_or_cr = "debit" if self.filters.party_type == "Customer" else "credit"
 		reverse_dr_or_cr = "credit" if self.filters.party_type == "Customer" else "debit"
 
+		# Get sales person for each customer
+		customer_sales_persons = {}
+		if self.filters.party_type == "Customer":
+			customer_sales_persons = self.get_customer_sales_persons()
+
 		self.party_data = frappe._dict({})
 		for gle in self.gl_entries:
 			party_details = self.party_details.get(gle.party)
 			party_name = party_details.get(f"{scrub(self.filters.party_type)}_name", "")
+			
+			# Get sales person for this customer
+			sales_person = customer_sales_persons.get(gle.party)
+			
 			self.party_data.setdefault(
 				gle.party,
 				frappe._dict(
 					{
 						**party_details,
 						"party_name": party_name,
+						"sales_person": sales_person,
 						"opening_balance": 0,
 						"invoiced_amount": 0,
 						"paid_amount": 0,
