@@ -16,3 +16,81 @@ Currency,العملة
 Company is mandatory,الشركة إلزامية
 Sales Person is mandatory,مندوب المبيعات إلزامي
 From Date must be before To Date,من تاريخ يجب أن يكون قبل إلى تاريخ
+General Ledger,دفتر الأستاذ العام
+Finance Book,دفتر المالية
+Account,الحساب
+Voucher No,رقم المستند
+Against Voucher No,رقم المستند المقابل
+Party Type,نوع الطرف
+Party,الطرف
+Party Name,اسم الطرف
+Categorize by,تصنيف حسب
+Categorize by Voucher,تصنيف حسب المستند
+"Categorize by Voucher (Consolidated)",تصنيف حسب المستند (مجمع)
+Categorize by Account,تصنيف حسب الحساب
+Categorize by Party,تصنيف حسب الطرف
+Tax Id,الرقم الضريبي
+Cost Center,مركز التكلفة
+Project,المشروع
+Consider Accounting Dimensions,اعتبار الأبعاد المحاسبية
+Show Opening Entries,إظهار القيود الافتتاحية
+Include Default FB Entries,تضمين قيود دفتر المالية الافتراضي
+Show Cancelled Entries,إظهار القيود الملغاة
+Show Net Values in Party Account,إظهار صافي القيم في حساب الطرف
+Show Credit / Debit in Company Currency,إظهار الدائن / المدين بعملة الشركة
+Add Columns in Transaction Currency,إضافة أعمدة بعملة المعاملة
+Show Remarks,إظهار الملاحظات
+Ignore Exchange Rate Revaluation and Gain / Loss Journals,تجاهل قيود إعادة تقييم سعر الصرف وأرباح/خسائر فرق العملة
+Ignore System Generated Credit / Debit Notes,تجاهل إشعارات الدائن / المدين التي ينشئها النظام
+GL Entry,قيد دفتر الأستاذ العام
+Posting Date,تاريخ الترحيل
+Debit,مدين
+Credit,دائن
+Balance,الرصيد
+Debit (Transaction),مدين (عملة المعاملة)
+Credit (Transaction),دائن (عملة المعاملة)
+Transaction Currency,عملة المعاملة
+Voucher Type,نوع المستند
+Voucher Subtype,النوع الفرعي للمستند
+Against Account,الحساب المقابل
+Against Voucher Type,نوع المستند المقابل
+Against Voucher,المستند المقابل
+Supplier Invoice No,رقم فاتورة المورد
+Remarks,الملاحظات
+Opening,افتتاحي
+Total,الإجمالي
+Closing,الختامي
+"Closing (Opening + Total)","الختامي (الافتتاحي + الإجمالي)"
+Journal Entry,قيد يومية
+Sales Invoice,فاتورة مبيعات
+Purchase Invoice,فاتورة مشتريات
+Payment Entry,سند صرف/قبض
+Asset Depr Schedule,جدول إهلاك الأصول
+Asset Depreciation,إهلاك الأصول
+Purchase Receipt,سند استلام مشتريات
+Delivery Note,سند توصيل
+Stock Entry,قيد مخزون
+Sales Receipt,إيصال مبيعات
+Stock Reconciliation,تسوية مخزون
+Expense Claim,طلب مصروفات
+Landed Cost Voucher,مستند التكاليف الإضافية
+Payroll Entry,قيد رواتب
+Employee Referrals,إحالات الموظفين
+Additional Salary,راتب إضافي
+Subcontracting Receipt,سند استلام تعاقد باطن
+Bank Transaction,معاملة بنكية
+Customer,عميل
+Supplier,مورد
+Employee,موظف
+Shareholder,مساهم
+Member,عضو
+Student,طالب
+Donor,متبرع
+Debit ({0}),مدين ({0})
+Credit ({0}),دائن ({0})
+Balance ({0}),الرصيد ({0})
+"'Opening'","'افتتاحي'"
+"'Total'","'الإجمالي'"
+"'Closing (Opening + Total)'","'الختامي (الافتتاحي + الإجمالي)'"
+Vouchers Entry,قيد سندات
+"Party Name","اسم الطرف المعني"
