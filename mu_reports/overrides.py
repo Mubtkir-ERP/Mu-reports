@@ -60,4 +60,20 @@ def query_report_run(*args, **kwargs):
 						translated_label = frappe._(clean_acc)
 						row["account"] = f"'{translated_label}'" if acc_val.startswith("'") else translated_label
 				
+	# Allow mu_diamond to enhance report results (e.g. Trial Balance for Party links)
+	try:
+		from mu_diamond.mu_diamond.events import enhance_trial_balance_for_party
+		ref_report = report_name
+		if report_name != "Trial Balance for Party":
+			ref = frappe.db.get_value("Report", report_name, "reference_report")
+			if ref == "Trial Balance for Party":
+				ref_report = "Trial Balance for Party"
+		
+		if ref_report == "Trial Balance for Party":
+			kwargs_copy = kwargs.copy()
+			kwargs_copy.pop("report_name", None)
+			res = enhance_trial_balance_for_party(res, report_name, **kwargs_copy)
+	except Exception as e:
+		frappe.log_error("Error enhancing Trial Balance for Party", str(e))
+
 	return res
