@@ -21,6 +21,15 @@ def query_report_run(*args, **kwargs):
 				currency_code = label[9:-1]
 				col["label"] = frappe._("Balance ({0})").format(currency_code)
 
+		# Force "Voucher No" to always render as a clickable link to the actual
+		# document, regardless of ERPNext version/behavior. A Dynamic Link column
+		# resolves its target doctype from another field in the same row named
+		# in "options" — here that field is "voucher_type".
+		for col in columns:
+			if col.get("fieldname") == "voucher_no":
+				col["fieldtype"] = "Dynamic Link"
+				col["options"] = "voucher_type"
+
 		# Check if party_name already exists in columns
 		has_party_name = any(col.get("fieldname") == "party_name" for col in columns)
 		
@@ -44,12 +53,23 @@ def query_report_run(*args, **kwargs):
 			else:
 				columns.append(party_name_column)
 
+		# The "Voucher Type" column must keep displaying a translated label, but
+		# "Voucher No" (Dynamic Link above) needs the RAW, untranslated doctype
+		# name (e.g. "Sales Invoice") in the "voucher_type" row field to build a
+		# working link. So the translated text is moved to a separate display
+		# field ("voucher_type_label") instead of overwriting "voucher_type".
+		for col in columns:
+			if col.get("fieldname") == "voucher_type":
+				col["fieldname"] = "voucher_type_label"
+
 		# Translate row contents dynamically (Voucher Type, Party Type, Opening/Total/Closing labels)
 		result_rows = res.get("result", [])
 		for row in result_rows:
 			if isinstance(row, dict):
 				if row.get("voucher_type"):
-					row["voucher_type"] = frappe._(row["voucher_type"])
+					# Keep "voucher_type" untouched (raw doctype name) so the
+					# "Voucher No" link keeps working; translated text goes here.
+					row["voucher_type_label"] = frappe._(row["voucher_type"])
 				if row.get("party_type"):
 					row["party_type"] = frappe._(row["party_type"])
 				
