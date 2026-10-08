@@ -1,0 +1,21 @@
+<style>
+@page {size:A4 portrait; margin:12mm}
+.tax-summary {direction:rtl;font-family:Arial,Tahoma,sans-serif;font-size:11px}
+.tax-summary table {width:100%;border-collapse:collapse}
+.tax-summary th,.tax-summary td {border:1px solid #aaa;padding:7px}
+.tax-summary th {background:#eee}.tax-summary .grand {background:#dceafa;font-weight:bold}
+.tax-summary .number {direction:ltr;text-align:left}
+</style>
+<div class="tax-summary">
+<h2 class="text-center">ملخص التقرير الضريبي</h2>
+<p class="text-center">{%= frappe.utils.escape_html(filters.company || '') %} | {%= frappe.utils.escape_html(filters.from_date || '') %} — {%= frappe.utils.escape_html(filters.to_date || '') %}</p>
+<p>الحسابات: {%= frappe.utils.escape_html((filters.tax_accounts || []).join('، ')) %}</p>
+<table><thead><tr><th>نوع المستند</th><th>صافي المبلغ المعروف</th><th>صافي الضريبة</th></tr></thead><tbody>
+{% for (var i=0; i<data.length; i++) { var r=data[i]; if (r.row_kind !== 'subtotal' && r.row_kind !== 'grand_total') continue; %}
+<tr class="{%= r.row_kind === 'grand_total' ? 'grand' : '' %}"><td>{%= frappe.utils.escape_html(r.invoice_no || '') %}</td>
+<td class="number">{%= r.net_amount == null ? '—' : frappe.format(r.net_amount, {fieldtype:'Currency'}) %}</td>
+<td class="number">{%= r.tax_amount == null ? '—' : frappe.format(r.tax_amount, {fieldtype:'Currency'}) %}</td></tr>
+{% } %}
+</tbody></table>
+<p>المبالغ بعملة الشركة. صافي الفاتورة كامل؛ الخانة الفارغة وعاء غير متاح. المجاميع تشمل الأوعية المعروفة فقط.</p>
+</div>
