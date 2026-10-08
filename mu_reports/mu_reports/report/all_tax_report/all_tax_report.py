@@ -145,7 +145,7 @@ def _load_documents(filters, ledger):
     docs = {}
     for vtype, names in by_type.items():
         docs[vtype] = _master_fields(vtype, names, ['base_net_total', 'customer', 'supplier', 'party',
-                                                  'party_type', 'is_return', 'payment_type', 'docstatus'])
+                                                  'party_type', 'customer_name', 'supplier_name', 'party_name', 'is_return', 'payment_type', 'docstatus'])
         # Tax GL lines often have no party; recover it from the same voucher's GL.
         for r in frappe.get_all('GL Entry', filters={'company': filters.company, 'is_cancelled': 0,
                    'voucher_type': vtype, 'voucher_no': ['in', list(names)], 'party': ['!=', '']},
@@ -182,8 +182,8 @@ def _load_documents(filters, ledger):
             customers.add(v['party'])
         if v['party_type'] == 'Supplier':
             suppliers.add(v['party'])
-    customer_map = _master_fields('Customer', customers - {''}, ['custom_vat_registration_number', 'tax_id'])
-    supplier_map = _master_fields('Supplier', suppliers - {''}, ['custom_vat_registration_number', 'tax_id'])
+    customer_map = _master_fields('Customer', customers - {''}, ['customer_name', 'custom_vat_registration_number', 'tax_id'])
+    supplier_map = _master_fields('Supplier', suppliers - {''}, ['supplier_name', 'custom_vat_registration_number', 'tax_id'])
     settings = _settings(filters.get('account_classification'))
     account_map = {r.get('account'): r.get('category') if r.get('category') in
                    ('Output', 'Input', 'Adjustment', 'Excluded') else 'Unclassified' for r in settings}
@@ -216,7 +216,7 @@ def _load_documents(filters, ledger):
         if net is not None and net * tax < 0:
             warnings.append(_('Tax sign differs from the invoice net direction'))
         row = {'invoice_no': name, 'voucher_type': vtype, 'voucher_type_label': _(vtype), 'posting_date': v['posting_date'],
-               'party': v['party'], 'account': ', '.join(a['account'] for a in details),
+               'party': v['party'], 'party_name': (doc or {}).get('customer_name') or (doc or {}).get('supplier_name') or (doc or {}).get('party_name') or master.get('customer_name') or master.get('supplier_name') or v['party'], 'account': ', '.join(a['account'] for a in details),
                'custom_vat_registration_number': vat, 'item_name': '', 'net_amount': net,
                'tax_amount': tax, 'section_key': section, 'indent': 1, 'row_kind': 'document',
                'account_details': details, 'warnings': warnings, 'has_tax_gl': v['has_tax_gl']}

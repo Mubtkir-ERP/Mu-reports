@@ -37,8 +37,8 @@ D(name='SR',base_net_total=-100,customer='C',is_return=1,docstatus=1),
 D(name='ZERO-INVOICE',base_net_total=250,customer='C',is_return=0,docstatus=1,total_taxes_and_charges=0,company='Co',posting_date='2026-10-08')],
 'Purchase Invoice':[D(name='PI',base_net_total=500,supplier='S',is_return=0,docstatus=1),D(name='PR',base_net_total=-50,supplier='S',is_return=1,docstatus=1)],
 'Payment Entry':[D(name='SAME',payment_type='Pay',docstatus=1)],'Vouchers Entry':[D(name='VE',payment_type='Receive',docstatus=1)],
-'Journal Entry':[D(name='JE',docstatus=1),D(name='ZERO',docstatus=1)],'Customer':[D(name='C',tax_id='310123456700003')],
-'Supplier':[D(name='S',tax_id='310123456700003')],
+'Journal Entry':[D(name='JE',docstatus=1),D(name='ZERO',docstatus=1)],'Customer':[D(name='C',customer_name='Customer Display Name',tax_id='310123456700003')],
+'Supplier':[D(name='S',supplier_name='Supplier Display Name',tax_id='310123456700003')],
 'Sales Invoice Item':[D(parent='SAME',item_name='Item')], 'Purchase Invoice Item':[],'GL Entry':gl}
 def match(r,filters):
     for k,v in filters.items():
@@ -169,3 +169,8 @@ formats=json.loads((root/'mu_reports/fixtures/print_format.json').read_text(enco
 assert len(formats)==3 and all(r['print_format_for']=='Report' and r['print_format_type']=='JS' and r['report']=='All Tax Report' for r in formats)
 assert formats[0]['html']==(root/'mu_reports/mu_reports/report/all_tax_report/all_tax_report.html').read_text(encoding='utf-8')
 print('PASS: no summary cards, raw/translated voucher types, per-request Arabic/English labels, native format registration/default, server letter-head renderer delegation (mocked).')
+
+name_rows=[r for r in ns['execute'](base)[1] if r['row_kind']=='document']
+assert next(r for r in name_rows if r['voucher_type']=='Sales Invoice')['party_name']=='Customer Display Name'
+assert next(r for r in name_rows if r['voucher_type']=='Purchase Invoice')['party_name']=='Supplier Display Name'
+print('PASS: customer/supplier display names resolved independently of party IDs.')

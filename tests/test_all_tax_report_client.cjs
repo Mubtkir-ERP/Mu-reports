@@ -13,7 +13,7 @@ function compile(str){
 const root=require('path').resolve(__dirname,'..');
 const formats=JSON.parse(fs.readFileSync(root+'/mu_reports/fixtures/print_format.json','utf8'));
 for(lang of ['en','ar']){
- const rows=[{row_kind:'document',invoice_no:'SI-TEST',voucher_type:'Sales Invoice',voucher_type_label:__('Sales Invoice'),net_amount:20000,tax_amount:3000},{row_kind:'subtotal',invoice_no:__('Total Sales Invoices'),net_amount:20000,tax_amount:3000},{row_kind:'grand_total',invoice_no:'Grand Total',net_amount:20000,tax_amount:3000,_tax_print:{filters:{company:'Test',tax_accounts:['VAT']},currency:'SAR',declaration:{rows:[{number:1,label:'Test',amount:20000,adjustment:0,tax:3000}],current_tax:3000,previous_correction:0,carried_credit:0,payable:3000,complete:true,pending:[],missing_boxes:[]}}}]; const data={original_data:rows,data:rows,filters:{}};
+ const rows=[{row_kind:'document',invoice_no:'SI-TEST',voucher_type:'Sales Invoice',voucher_type_label:__('Sales Invoice'),party:'CUST-TEST',party_name:'Customer Display Name',net_amount:20000,tax_amount:3000},{row_kind:'subtotal',invoice_no:__('Total Sales Invoices'),net_amount:20000,tax_amount:3000},{row_kind:'grand_total',invoice_no:'Grand Total',net_amount:20000,tax_amount:3000,_tax_print:{filters:{company:'Test',tax_accounts:['VAT']},currency:'SAR',declaration:{rows:[{number:1,label:'Test',amount:20000,adjustment:0,tax:3000}],current_tax:3000,previous_correction:0,carried_credit:0,payable:3000,complete:true,pending:[],missing_boxes:[]}}}]; const data={original_data:rows,data:rows,filters:{}};
  for(const pf of formats){
   const html=compile(pf.html)(data);const suffix=pf.name.endsWith('Summary')?'summary':pf.name.endsWith('Detailed')?'detailed':'declaration';
   assert(!html.includes('{%=')&&!html.includes('{%')&&!html.includes('{{'));
@@ -21,6 +21,7 @@ for(lang of ['en','ar']){
   assert(html.includes('3,000.00'));
   if(lang==='ar')assert(!html.includes('Total Sales Invoices')&&!html.includes('Sales Invoices'));
   if(suffix==='summary')assert(html.includes(lang==='ar'?'إجمالي فواتير المبيعات':'Total Sales Invoices'));
+  if(suffix==='detailed'){assert(html.includes('Customer Display Name'));assert(!html.includes('CUST-TEST'));assert.strictEqual((html.match(/<th>/g)||[]).length,7);} 
   if(suffix==='detailed')assert(html.includes(lang==='ar'?'فاتورة مبيعات':'Sales Invoice'));
   const escaped=structuredClone(data);escaped.original_data.at(-1)._tax_print.filters.company='<script>bad()</script>';
   assert(!compile(pf.html)(escaped).includes('<script>bad()</script>'));

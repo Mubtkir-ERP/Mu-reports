@@ -51,3 +51,7 @@ https://zatca.gov.sa/ar/HelpCenter/guidelines/Documents/إرشادات.pdf
 تمت مراجعة واجهات التقرير في فرع Frappe version-15 الرسمي:
 https://github.com/frappe/frappe/blob/version-15/frappe/desk/query_report.py
 https://github.com/frappe/frappe/blob/version-15/frappe/public/js/frappe/views/reports/query_report.js
+
+## تعديل الطباعة المفصلة
+
+عمود الطرف يعرض اسم العميل أو المورد من المستند أو بطاقة الطرف، ويستخدم الرمز عند تعذر الاسم. حُذف عمودا حساب الضريبة والمنتج من هذه الصيغة فقط، وأُخفيت صفوف التفاصيل التفسيرية فيها. الحسابات المختارة تبقى في بيانات الفلاتر أعلى الصفحة، والمجاميع لم تتغير.
