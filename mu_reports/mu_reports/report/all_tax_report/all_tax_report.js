@@ -64,11 +64,12 @@ frappe.query_reports['All Tax Report'] = {
     onload(report) {
         taxNativePrinting(report);
         taxHideSummary(report);
+        taxExportLifecycle(report);
         report.page.add_inner_button(__("Classify Tax Accounts"),taxAccountSettings,__("Review"));
         report.page.add_inner_button(__("Configure VAT Return"),taxDeclarationSettings,__("Review"));
         report.page.add_inner_button(__("Reconcile GL"),taxReconcile,__("Review"));
         report.page.add_inner_button(__("Data Warnings"),taxWarnings,__("Review"));
-        report.page.add_inner_button(__("Export Excel"),taxExportExcel);
+        taxEnsureExport(report);
         // Restore classifications before subsequent report runs; keys are company/period scoped.
         return taxSyncFilters(false);
     },
@@ -92,6 +93,34 @@ frappe.query_reports['All Tax Report'] = {
         return formatted;
     }
 };
+function taxEnsureExport(report) {
+    if (report.report_name !== 'All Tax Report') return;
+    const label = __('Export Excel');
+    const toolbar = report.page.inner_toolbar;
+    const existing = toolbar && toolbar.find('button[data-tax-export="1"]');
+    if (existing && existing.length) {
+        existing.text(label).attr('data-label', encodeURIComponent(label));
+        toolbar.removeClass('hide');
+        return;
+    }
+    const button = report.page.add_inner_button(label, taxExportExcel);
+    if (button && button.attr) button.attr('data-tax-export', '1');
+}
+function taxExportLifecycle(report) {
+    if (report._tax_export_lifecycle || typeof report.refresh !== 'function') return;
+    report._tax_export_lifecycle = true;
+    const original = report.refresh.bind(report);
+    report.refresh = function(...args) {
+        taxEnsureExport(this);
+        const result = original(...args);
+        if (result && typeof result.then === 'function') {
+            // Native refresh/page setup may rebuild the toolbar after onload.
+            return result.finally(() => taxEnsureExport(this));
+        }
+        taxEnsureExport(this);
+        return result;
+    };
+}
 async function taxExportExcel() {
     try {
         const response = await fetch('/api/method/' + taxMethod + 'export_excel', {method:'POST',
