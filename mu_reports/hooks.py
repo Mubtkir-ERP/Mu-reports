@@ -248,3 +248,8 @@ override_whitelisted_methods = {
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+
+# Report Print Formats are imported by install/migrate. No custom print buttons.
+fixtures = [{"dt": "Print Format", "filters": [["name", "in", [
+    "All Tax Report - Summary", "All Tax Report - Detailed", "All Tax Report - VAT Return"
+]]]}]

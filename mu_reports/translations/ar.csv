@@ -93,4 +93,159 @@ Balance ({0}),الرصيد ({0})
 "'Total'","'الإجمالي'"
 "'Closing (Opening + Total)'","'الختامي (الافتتاحي + الإجمالي)'"
 Vouchers Entry,قيد سندات
-"Party Name","اسم الطرف المعني"
+"Party Name","اسم الطرف المعني"Sales subject to the standard rate,المبيعات الخاضعة للنسبة الأساسية
+Sales to citizens: private healthcare and education,المبيعات للمواطنين: الخدمات الصحية والتعليم الأهلي
+Domestic zero-rated sales,المبيعات المحلية الصفرية
+Exports,الصادرات
+Exempt sales,المبيعات المعفاة
+Purchases subject to the standard rate,المشتريات الخاضعة للنسبة الأساسية
+Standard-rated imports with VAT paid at import,الاستيرادات الخاضعة للنسبة الأساسية والمدفوعة عند الاستيراد
+Standard-rated imports under reverse charge,الاستيرادات الخاضعة للنسبة الأساسية وفق الاحتساب العكسي
+Zero-rated purchases,المشتريات الصفرية
+Exempt purchases,المشتريات المعفاة
+Amounts are in company currency. The full invoice net amount is not allocated to selected tax accounts. ,المبالغ بعملة الشركة. صافي الفاتورة كامل وليس موزعًا على الحسابات المختارة. 
+A blank base is unavailable; totals include known net amounts only. ,الخانة الفارغة تعني وعاءً غير متاح؛ المجاميع تشمل الصافي المعروف فقط. 
+Account details are explanatory; each document contributes to totals only once. ,تفاصيل الحسابات للشرح؛ إجمالي المستند يُحتسب مرة واحدة فقط. 
+Review warnings: ,تنبيهات المراجعة: 
+Report,التقرير
+Account Details,تفصيل الحسابات
+Reconciliation,المطابقة
+VAT Return,الإقرار
+Review,المراجعة
+Settings,الإعدادات
+Total Sales,إجمالي المبيعات
+Total Purchases,إجمالي المشتريات
+Output VAT,ضريبة المخرجات
+Input VAT,ضريبة المدخلات
+Classified Adjustments,التسويات المصنفة
+Unclassified (Net),غير مصنف (صافي)
+Excluded from Return (Net),مستبعد من الإقرار (صافي)
+Net Tax Movement,صافي حركة الضريبة
+Row Type,نوع الصف
+Warnings,تنبيهات
+Voucher,المستند
+Net Tax,صافي الضريبة
+Classification,التصنيف
+Ledger Net,صافي الأستاذ
+Document Net,صافي المستندات
+Visible Net,المعروض
+Hidden by Filters,مخفي بالفلاتر
+Difference,الفرق
+Box,البند
+Description,البيان
+Amount,المبلغ
+Adjustment,تسويات
+Tax,الضريبة
+Net VAT for the Period,صافي الضريبة للفترة
+Previous Period Corrections,تصحيحات الفترات السابقة
+Carried Credit,الرصيد المرحّل
+Provisional VAT Payable,صافي مستحق مبدئي
+Note,ملاحظة
+Generated At,وقت الاستخراج
+Return Status,حالة الإقرار
+Classification Complete,مكتمل التصنيف
+Incomplete Draft,مسودة غير مكتملة
+Invoice net amounts are complete; totals include known bases only. Do not sum account details again.,صافي الفواتير كامل؛ المجاميع تشمل الأوعية المعروفة فقط. تفاصيل الحسابات لا تُجمع مرة ثانية.
+Return Layout Source,مرجع شكل الإقرار
+VAT registration number is missing,الرقم الضريبي غير متوفر
+Tax base is unavailable; a payment amount is not a tax base,الوعاء الضريبي غير متاح؛ مبلغ السداد ليس وعاءً ضريبيًا
+Tax account is unclassified,حساب ضريبة غير مصنف
+Source document is unavailable; the amount comes from GL,المستند المصدر غير متاح؛ المبلغ مأخوذ من الأستاذ
+Document status conflicts with uncancelled GL movement,حالة المستند لا تتفق مع حركة الأستاذ غير الملغاة
+Both debit and credit movements exist; review account details,توجد حركات مدينة ودائنة؛ راجع تفصيل الحسابات
+Tax sign differs from the invoice net direction,إشارة الضريبة تختلف عن اتجاه صافي الفاتورة
+Document is not mapped to a return box,المستند غير مصنف في الإقرار
+Tax base has not been entered or confirmed,الوعاء لم يُحدد أو يُعتمد
+Nonzero tax in a zero-rated or exempt box,ضريبة غير صفرية في بند صفري أو معفى
+Output,مخرجات
+Input,مدخلات
+Excluded,مستبعد من الإقرار
+Unclassified,غير مصنف
+Private healthcare and education for citizens,الخدمات الصحية والتعليم الأهلي للمواطنين
+Standard-rated purchases,المشتريات بالنسبة الأساسية
+Imports with VAT paid at import,الاستيرادات المدفوعة عند الاستيراد
+Reverse-charge imports,الاستيرادات وفق الاحتساب العكسي
+Show Items,إظهار المنتجات
+Show Tax Account Details,تفصيل حسابات الضريبة
+Document Group,مجموعة المستندات
+All,الكل
+Sales,المبيعات
+Purchases,المشتريات
+Returns Only,المرتجعات فقط
+Payments and Journals Only,السندات والقيود فقط
+Include Zero Net Tax,إظهار صافي الضريبة الصفري
+Include Invoices with Zero Total Taxes,إضافة الفواتير ذات إجمالي الضرائب الصفري
+Classify Tax Accounts,تصنيف حسابات الضريبة
+Configure VAT Return,إعداد جدول الإقرار
+Reconcile GL,مطابقة الأستاذ
+Data Warnings,تنبيهات البيانات
+Export Excel,تصدير Excel
+Accounts,الحسابات
+Save,حفظ
+Type,النوع
+Classification is used for tax review. Excluded movements remain in GL reconciliation. Settings are stored in this browser for this user and company.,التصنيف يحدد ملخص المخرجات والمدخلات والتسويات. الاستبعاد لا يحذف الحركة من مطابقة الأستاذ. الإعدادات محفوظة لهذا المستخدم والشركة في هذا المتصفح.
+Map each voucher once. Confirm the full invoice base only when it belongs entirely to one box and matches the selected account scope; otherwise enter the correct base manually. Payment amounts are not tax bases. Multi-box vouchers need manual allocation and review.,صنّف كل مستند مرة واحدة. اعتمد كامل صافي الفاتورة فقط إذا كان الوعاء يخص بندًا واحدًا بالكامل ويطابق نطاق الحسابات المختارة؛ وإلا أدخل الوعاء الصحيح يدويًا. لا يُستنتج الوعاء من السداد. المستند متعدد بنود الإقرار يبقى للمراجعة؛ استخدم الإضافات اليدوية بعد مراجعة توزيعه.
+Map Visible Vouchers,تصنيف المستندات الظاهرة
+Return Box,بند الإقرار
+Confirm Full Invoice Base,اعتماد كامل صافي الفاتورة
+Manual Base (Returns Negative),وعاء يدوي (المرتجع بالسالب)
+Separate Manual Additions — Do Not Duplicate Voucher Amounts,إضافات يدوية مستقلة — لا تكرر مبالغ المستندات أعلاه
+"These are additions, not replacement totals. Explicitly enter zero for unused boxes after checking. Imports, deductions and corrections require review; no assumed tax rate is used.",الخانات هنا مبالغ إضافية وليست بديلًا عن الإجماليات المحسوبة. أدخل صفرًا صراحةً للبند غير المستخدم بعد التحقق. مبالغ الاستيراد والخصم والتصحيحات تحتاج مراجعة؛ لا يحسبها التقرير من نسبة مفترضة.
+Manual Additions and Adjustments (Company Currency),الإضافات والتعديلات (ريال / عملة الشركة)
+Base Addition,إضافة للوعاء
+Base Adjustment,مبلغ تعديل الوعاء
+Tax Addition,إضافة للضريبة
+Previous Period VAT Correction (+ / -),تصحيح ضريبة فترات سابقة (+ / −)
+Carried VAT Credit (Positive),رصيد ضريبي دائن مرحّل (موجب)
+Export failed; check the inputs and permissions,تعذر تصدير التقرير؛ راجع المدخلات والصلاحيات
+The server did not return an Excel file,لم يُرجع الخادم ملف Excel
+Sales Invoices,فواتير المبيعات
+Sales Returns,مرتجعات المبيعات
+Purchase Invoices,فواتير المشتريات
+Purchase Returns,مرتجعات المشتريات
+ERPNext Payment Entries,سندات القبض والصرف الأصلية
+Voucher Entries,السندات الخارجية
+Journal Entries,القيود اليومية
+Other GL Vouchers,مستندات الأستاذ الأخرى
+All Tax Report,تقرير جميع الضرائب
+All Tax Report - Summary,التقرير الضريبي - مختصر
+All Tax Report - Detailed,التقرير الضريبي - مفصل
+All Tax Report - VAT Return,التقرير الضريبي - جدول الإقرار
+Total {0},إجمالي {0}
+Grand Total,المجموع الإجمالي
+Tax Accounts,حسابات الضريبة
+Tax Account,حساب الضريبة
+VAT Registration Number,الرقم الضريبي
+Net Amount,صافي المبلغ
+Tax Amount,مبلغ الضريبة
+Item,الصنف
+Date,التاريخ
+Tax Report Summary,ملخص التقرير الضريبي
+Detailed Tax Report,التقرير الضريبي المفصل
+VAT Return Table,جدول إقرار ضريبة القيمة المضافة
+Known Net Amount,صافي المبلغ المعروف
+Tax Adjustment Amount,مبلغ تعديل الوعاء
+VAT Amount,مبلغ الضريبة
+Net VAT for the Period (Provisional),صافي الضريبة للفترة (مبدئي)
+VAT Payable (Provisional),صافي الضريبة المستحقة (مبدئي)
+Classification complete for the entered data; review before filing.,مكتمل التصنيف حسب المدخلات؛ يحتاج مراجعة قبل التقديم.
+Incomplete draft: {0} vouchers require review. Incomplete boxes: {1}.,مسودة غير مكتملة: {0} مستندات تحتاج مراجعة. البنود غير المكتملة: {1}.
+"The report has a restricted scope. Remove party, type, group and voucher filters and include zero-tax invoices and zero-net movements.",نطاق التقرير مقيد. أزل فلاتر الطرف والنوع والمجموعة والمستند، وأظهر الفواتير ذات الضرائب الصفرية والحركات ذات الصافي الصفري.
+The company currency is not SAR; do not use these amounts for a Saudi VAT return.,عملة الشركة ليست الريال السعودي؛ لا تعتمد هذه الأرقام للإقرار.
+No report data. Refresh the report before printing.,لا توجد بيانات تقرير. حدّث التقرير قبل الطباعة.
+"Reconciliation includes selected company, period, accounts and voucher before party, group and zero-net filters. Hidden rows are not accounting differences.",تشمل المطابقة الشركة والفترة والحسابات والمستند قبل فلاتر الطرف والمجموعة والصافي الصفري. الصفوف المخفية ليست فروقًا محاسبية.
+Voucher Details in Reconciliation Scope,تفاصيل المستندات ضمن نطاق المطابقة
+Incomplete return boxes: {0}. Warnings do not change amounts automatically.,بنود الإقرار غير المكتملة: {0}. التنبيهات لا تغير الأرقام تلقائيًا.
+None,لا يوجد
+Review Warnings,تنبيهات المراجعة
+Print format is unavailable. Update the app and migrate the site.,صيغة الطباعة غير متاحة. حدّث التطبيق ونفّذ ترحيل الموقع.
+Returns,المرتجعات
+Settlements,السندات والقيود
+Letter head rendering failed. Check its template and company fields.,تعذر تجهيز الترويسة. راجع قالبها وحقول الشركة.
+Section,قسم
+Document,مستند
+Subtotal,إجمالي قسم
+Item Row,صف صنف
+Tax Detail,تفصيل ضريبة
+Sales subject to the standard rate,المبيعات الخاضعة للنسبة الأساسية
+Value,القيمة

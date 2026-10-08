@@ -1,0 +1,130 @@
+<style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+</style>
+
+<table style="width: 100%; margin-bottom: 10px;">
+  <tr>
+    <td style="text-align: right; padding: 8px; border: 1px solid white; font-size: medium;">
+      <strong>الى تاريخ:</strong> {{ frappe.format(filters.to_date, {"fieldtype":"Date"}) }}
+    </td>
+    <td style="text-align: left; padding: 8px; border: 1px solid white; font-size: medium;">
+      <strong>من تاريخ:</strong> {{ frappe.format(filters.from_date, {"fieldtype":"Date"}) }}
+    </td>
+    <td style="text-align: right; font-weight: bold; padding: 8px; border: 1px solid white; font-size: large;">
+      الأقرار الضريبي
+    </td>
+  </tr>
+</table>
+<!-- Sales Section -->
+<h4 style="text-align: right;">المبيعات</h4>
+<table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 10px;">
+  <tr style="font-weight: bold;">
+    <td style="border: 1px solid black; padding: 8px;">الضريبة</td>
+    <td style="border: 1px solid black; padding: 8px;">المبلغ الخاضع للضريبة</td>
+    <td style="border: 1px solid black; padding: 8px;">النوع</td>
+  </tr>
+  {%
+    var sales_inv = data[0] || {};
+    var sales_ret = data[1] || {};
+    var sales_inv_amount = parseFloat(sales_inv.total_amount) || 0;
+    var sales_ret_amount = parseFloat(sales_ret.total_amount) || 0;
+    var sales_inv_tax = parseFloat(sales_inv.total_tax) || 0;
+    var sales_ret_tax = parseFloat(sales_ret.total_tax) || 0;
+    var net_sales_amount = sales_ret_amount + sales_inv_amount ;
+    var net_sales_tax = sales_inv_tax - sales_ret_tax;
+  %}
+  <tr>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(sales_inv_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(sales_inv_amount, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px; padding-left: 25px !important;">فواتير المبيعات</td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(sales_ret_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(sales_ret_amount, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">مرتجعات المبيعات</td>
+  </tr>
+  <tr style="font-weight: bold; background-color: #ffffff;">
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(net_sales_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(net_sales_amount, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">المجموع</td>
+  </tr>
+</table>
+
+<!-- Purchase Section -->
+<h4 style="text-align: right;">المشتريات</h4>
+<table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 10px;">
+  <tr style="font-weight: bold;">
+    <td style="border: 1px solid black; padding: 8px;">الضريبة</td>
+    <td style="border: 1px solid black; padding: 8px;">المبلغ الخاضع للضريبة</td>
+    <td style="border: 1px solid black; padding: 8px;">النوع</td>
+  </tr>
+  {%
+    var pur_inv = data[2] || {};
+    var pur_ret = data[3] || {};
+    var pur_inv_amount = parseFloat(pur_inv.total_amount) || 0;
+    var pur_ret_amount = parseFloat(pur_ret.total_amount) || 0;
+    var pur_inv_tax = parseFloat(pur_inv.total_tax) || 0;
+    var pur_ret_tax = parseFloat(pur_ret.total_tax) || 0;
+    var net_pur_amount = pur_inv_amount + pur_ret_amount;
+    var net_pur_tax = pur_inv_tax - pur_ret_tax;
+  %}
+  <tr>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(pur_inv_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding-left: 38px !important;">{{ frappe.format(pur_inv_amount, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding-left: 17px !important;">فواتير المشتريات</td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(pur_ret_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(pur_ret_amount, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">مرتجعات المشتريات</td>
+  </tr>
+  <tr style="font-weight: bold; background-color: #ffffff;">
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(net_pur_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(net_pur_amount, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">المجموع</td>
+  </tr>
+</table>
+
+<!-- Others Section -->
+<h4 style="text-align: right;">أخرى</h4>
+<table style="width: 100%; text-align: right; border-collapse: collapse; margin-bottom: 10px;">
+  <tr style="font-weight: bold;">
+    <td style="border: 1px solid black; padding: 8px;">الضريبة المعدلة</td>
+    <td style="border: 1px solid black; padding-left: 226px !important;">النوع</td>
+  </tr>
+  {%
+    var journal = data[4] || {};
+    var journal_tax = parseFloat(journal.total_tax) || 0;
+  %}
+  <tr>
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(journal_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">القيود اليومية</td>
+  </tr>
+  <tr style="font-weight: bold; background-color: #ffffff;">
+    <td style="border: 1px solid black; padding: 8px;">{{ frappe.format(journal_tax, {"fieldtype":"Currency"}) }}</td>
+    <td style="border: 1px solid black; padding: 8px;">المجموع</td>
+  </tr>
+</table>
+
+<!-- Final Net Summary -->
+<h4 style="text-align: right;">الملخص الصافي</h4>
+{%
+  var adjusted_purchase_tax = net_pur_tax + journal_tax;
+  var adjusted_diff = net_sales_tax - adjusted_purchase_tax;
+%}
+<table style="width: 100%; text-align: right; border-collapse: collapse;">
+  <tr style="font-weight: bold; background-color: #eee;">
+    <td style="border: 1px solid black; padding: 8px;">المبلغ المستحق للضريبة</td>
+    <!-- <td style="border: 1px solid black; padding-left: 35px !important;">Taxable Amount Diff</td> -->
+    <td style="border: 1px solid black; padding-left: 121px !important;">المجموع</td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid black; padding: 8px;">
+      {{ frappe.format(adjusted_diff, {"fieldtype":"Currency"}) }}
+    </td>
+    <td style="border: 1px solid black; padding: 8px;">المجموع</td>
+  </tr>
+</table>

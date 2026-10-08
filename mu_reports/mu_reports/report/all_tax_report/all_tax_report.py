@@ -8,20 +8,20 @@ from frappe.utils import flt, cint, getdate, now_datetime
 from frappe.query_builder import DocType
 
 SECTION_NAMES = {
-    'Sales Invoice': _('Sales Invoices'), 'Sales Return': _('Sales Returns'),
-    'Purchase Invoice': _('Purchase Invoices'), 'Purchase Return': _('Purchase Returns'),
-    'Payment Entry': _('ERPNext Payment Entries'), 'Vouchers Entry': _('Voucher Entries'),
-    'Journal Entry': _('Journal Entries'), 'Other': _('Other GL Vouchers'),
+    'Sales Invoice': 'Sales Invoices', 'Sales Return': 'Sales Returns',
+    'Purchase Invoice': 'Purchase Invoices', 'Purchase Return': 'Purchase Returns',
+    'Payment Entry': 'ERPNext Payment Entries', 'Vouchers Entry': 'Voucher Entries',
+    'Journal Entry': 'Journal Entries', 'Other': 'Other GL Vouchers',
 }
 SECTION_ORDER = tuple(SECTION_NAMES)
 RETURN_LABELS = {
-    1: 'المبيعات الخاضعة للنسبة الأساسية',
-    2: 'المبيعات للمواطنين: الخدمات الصحية والتعليم الأهلي',
-    3: 'المبيعات المحلية الخاضعة للنسبة الصفرية', 4: 'الصادرات', 5: 'المبيعات المعفاة',
-    7: 'المشتريات الخاضعة للنسبة الأساسية',
-    8: 'الاستيرادات الخاضعة للنسبة الأساسية والمدفوعة عند الاستيراد',
-    9: 'الاستيرادات الخاضعة للنسبة الأساسية وفق الاحتساب العكسي',
-    10: 'المشتريات الخاضعة للنسبة الصفرية', 11: 'المشتريات المعفاة',
+    1: 'Sales subject to the standard rate',
+    2: 'Sales to citizens: private healthcare and education',
+    3: 'Domestic zero-rated sales', 4: 'Exports', 5: 'Exempt sales',
+    7: 'Purchases subject to the standard rate',
+    8: 'Standard-rated imports with VAT paid at import',
+    9: 'Standard-rated imports under reverse charge',
+    10: 'Zero-rated purchases', 11: 'Exempt purchases',
 }
 
 
@@ -202,20 +202,20 @@ def _load_documents(filters, ledger):
         net = _invoice_net(vtype, doc)
         warnings = []
         if v['party_type'] in ('Customer', 'Supplier') and not vat:
-            warnings.append('الرقم الضريبي غير متوفر')
+            warnings.append(_('VAT registration number is missing'))
         if net is None:
-            warnings.append('الوعاء الضريبي غير متاح؛ مبلغ السداد ليس وعاءً ضريبيًا')
+            warnings.append(_('Tax base is unavailable; a payment amount is not a tax base'))
         if any(a['category'] not in ('Output', 'Input', 'Adjustment', 'Excluded') for a in details):
-            warnings.append('حساب ضريبة غير مصنف')
+            warnings.append(_('Tax account is unclassified'))
         if v['has_tax_gl'] and not doc:
-            warnings.append('المستند المصدر غير متاح؛ المبلغ مأخوذ من الأستاذ')
+            warnings.append(_('Source document is unavailable; the amount comes from GL'))
         if doc and doc.get('docstatus') is not None and doc.get('docstatus') != 1:
-            warnings.append('حالة المستند لا تتفق مع حركة الأستاذ غير الملغاة')
+            warnings.append(_('Document status conflicts with uncancelled GL movement'))
         if sum(a['debit'] for a in details) and sum(a['credit'] for a in details):
-            warnings.append('توجد حركات مدينة ودائنة؛ راجع تفصيل الحسابات')
+            warnings.append(_('Both debit and credit movements exist; review account details'))
         if net is not None and net * tax < 0:
-            warnings.append('إشارة الضريبة تختلف عن اتجاه صافي الفاتورة')
-        row = {'invoice_no': name, 'voucher_type': vtype, 'posting_date': v['posting_date'],
+            warnings.append(_('Tax sign differs from the invoice net direction'))
+        row = {'invoice_no': name, 'voucher_type': vtype, 'voucher_type_label': _(vtype), 'posting_date': v['posting_date'],
                'party': v['party'], 'account': ', '.join(a['account'] for a in details),
                'custom_vat_registration_number': vat, 'item_name': '', 'net_amount': net,
                'tax_amount': tax, 'section_key': section, 'indent': 1, 'row_kind': 'document',
@@ -270,19 +270,19 @@ def _table_data(documents, filters):
         rows = grouped[section]
         if not rows:
             continue
-        data.append({'invoice_no': SECTION_NAMES[section], 'row_kind': 'section', 'indent': 0})
+        data.append({'invoice_no': _(SECTION_NAMES[section]), 'row_kind': 'section', 'indent': 0})
         for row in rows:
             data.append(row)
             if cint(filters.get('show_tax_details')):
                 for a in row['account_details']:
                     data.append({'voucher_type': row['voucher_type'], 'account': a['account'],
                                  'tax_amount': a['tax_amount'], 'net_amount': None,
-                                 'item_name': a['category'], 'row_kind': 'tax_detail', 'indent': 2})
+                                 'item_name': _(a['category']), 'row_kind': 'tax_detail', 'indent': 2})
             for name in items[(row['voucher_type'], row['invoice_no'])]:
                 data.append({'voucher_type': row['voucher_type'], 'item_name': name,
                              'row_kind': 'item', 'indent': 2, 'net_amount': None, 'tax_amount': None})
         known = [r['net_amount'] for r in rows if r['net_amount'] is not None]
-        data.append({'invoice_no': _('Total') + ' ' + SECTION_NAMES[section], 'row_kind': 'subtotal',
+        data.append({'invoice_no': _('Total {0}').format(_(SECTION_NAMES[section])), 'row_kind': 'subtotal',
                      'indent': 0, 'section_key': section, 'net_amount': sum(known) if known else None,
                      'tax_amount': sum(r['tax_amount'] for r in rows)})
     if documents:
@@ -313,7 +313,7 @@ def _declaration(documents, filters):
         if key in mapping:
             frappe.throw(_('A voucher must be mapped only once in the declaration.'))
         mapping[key] = m
-    boxes = {n: {'number': n, 'label': label, 'amount': None, 'adjustment': None, 'tax': None}
+    boxes = {n: {'number': n, 'label': _(label), 'amount': None, 'adjustment': None, 'tax': None}
              for n, label in RETURN_LABELS.items()}
     pending = []
     for row in documents:
@@ -321,7 +321,7 @@ def _declaration(documents, filters):
         number = cint(m.get('box')) if m else 0
         if number not in boxes:
             pending.append({'voucher_type': row['voucher_type'], 'invoice_no': row['invoice_no'],
-                            'tax_amount': row['tax_amount'], 'reason': 'المستند غير مصنف في الإقرار'})
+                            'tax_amount': row['tax_amount'], 'reason': _('Document is not mapped to a return box')})
             continue
         box = boxes[number]
         # One explicit voucher mapping prevents repeating an invoice base per account.
@@ -330,13 +330,13 @@ def _declaration(documents, filters):
             base = row['net_amount'] * (-1 if row['voucher_type'] == 'Purchase Invoice' else 1)
         if base is None:
             pending.append({'voucher_type': row['voucher_type'], 'invoice_no': row['invoice_no'],
-                            'tax_amount': row['tax_amount'], 'reason': 'الوعاء لم يُحدد أو يُعتمد'})
+                            'tax_amount': row['tax_amount'], 'reason': _('Tax base has not been entered or confirmed')})
         else:
             box['amount'] = flt(box['amount']) + base
         box['tax'] = flt(box['tax']) + row['tax_amount'] * (1 if number < 6 else -1)
         if number in (3, 4, 5, 10, 11) and abs(row['tax_amount']) > 0.0000001:
             pending.append({'voucher_type': row['voucher_type'], 'invoice_no': row['invoice_no'],
-                            'tax_amount': row['tax_amount'], 'reason': 'ضريبة غير صفرية في بند صفري أو معفى'})
+                            'tax_amount': row['tax_amount'], 'reason': _('Nonzero tax in a zero-rated or exempt box')})
     manual_rows = _settings(filters.get('declaration_manual'))
     seen = set()
     for manual in manual_rows:
@@ -349,7 +349,7 @@ def _declaration(documents, filters):
             if value is not None:
                 boxes[n][field] = flt(boxes[n][field]) + value
     result = []
-    for start, end, total_number, label in ((1, 5, 6, 'إجمالي المبيعات'), (7, 11, 12, 'إجمالي المشتريات')):
+    for start, end, total_number, label in ((1, 5, 6, _('Total Sales')), (7, 11, 12, _('Total Purchases'))):
         group = [boxes[n] for n in range(start, end + 1)]
         result.extend(group)
         # Missing categories stay blank in rows and make the declaration incomplete.
@@ -395,7 +395,7 @@ def get_columns():
         },
         {
             "label": _("Voucher Type"),
-            "fieldname": "voucher_type",
+            "fieldname": "voucher_type_label",
             "fieldtype": "Data",
             "width": 150,
         },
@@ -448,19 +448,28 @@ def get_columns():
 
 
 def execute(filters=None):
-    result = _build(filters or {})
-    s = result['summary']
-    labels = [('output', 'ضريبة المخرجات', 'Green'), ('input', 'ضريبة المدخلات', 'Blue'),
-              ('adjustment', 'التسويات المصنفة', 'Orange'), ('unclassified', 'غير مصنف (صافي)', 'Orange'),
-              ('excluded', 'مستبعد من الإقرار (صافي)', 'Gray'), ('net', 'صافي حركة الضريبة', 'Blue')]
-    summary = [{'label': label, 'value': s[key], 'datatype': 'Currency',
-                'currency': result['currency'], 'indicator': color} for key, label, color in labels]
-    message = 'المبالغ بعملة الشركة. صافي الفاتورة كامل وليس موزعًا على الحسابات المختارة. '
-    message += 'الخانة الفارغة تعني وعاءً غير متاح؛ المجاميع تشمل الصافي المعروف فقط. '
+    result = _attach_declaration(_build(filters or {}))
+    if result['data']:
+        result['data'][-1]['_tax_print'] = {k: result[k] for k in
+            ('filters', 'generated_at', 'currency', 'declaration')}
+    message = _('Amounts are in company currency. The full invoice net amount is not allocated to selected tax accounts. ')
+    message += _('A blank base is unavailable; totals include known net amounts only. ')
     if cint(result['filters'].get('show_tax_details')):
-        message += 'تفاصيل الحسابات للشرح؛ إجمالي المستند يُحتسب مرة واحدة فقط. '
-    message += 'تنبيهات المراجعة: ' + str(len(result['warnings']))
-    return get_columns(), result['data'], message, None, summary, 1
+        message += _('Account details are explanatory; each document contributes to totals only once. ')
+    message += _('Review warnings: ') + str(len(result['warnings']))
+    return get_columns(), result['data'], message, None, [], 1
+
+
+def _attach_declaration(result):
+    result['declaration'] = _declaration(result['documents'], frappe._dict(result['filters']))
+    restricted = any(result['filters'].get(k) for k in ('party', 'invoice_no', 'voucher_type'))
+    restricted = restricted or result['filters'].get('document_group', 'All') != 'All'
+    restricted = restricted or not cint(result['filters'].get('include_zero_tax'))
+    restricted = restricted or not cint(result['filters'].get('include_non_taxed'))
+    result['declaration']['restricted_scope'] = bool(restricted)
+    if restricted or result['currency'] != 'SAR':
+        result['declaration']['complete'] = False
+    return result
 
 
 @frappe.whitelist()
@@ -468,15 +477,7 @@ def get_print_data(filters=None, layout='summary'):
     result = _build(filters or {})
     result['columns'] = get_columns()
     result['layout'] = layout if layout in ('summary', 'detailed', 'declaration') else 'summary'
-    if result['layout'] == 'declaration':
-        result['declaration'] = _declaration(result['documents'], frappe._dict(result['filters']))
-        restricted = any(result['filters'].get(k) for k in ('party', 'invoice_no', 'voucher_type'))
-        restricted = restricted or result['filters'].get('document_group', 'All') != 'All'
-        restricted = restricted or not cint(result['filters'].get('include_zero_tax'))
-        restricted = restricted or not cint(result['filters'].get('include_non_taxed'))
-        result['declaration']['restricted_scope'] = bool(restricted)
-        if restricted or result['currency'] != 'SAR':
-            result['declaration']['complete'] = False
+    _attach_declaration(result)
     return result
 
 
@@ -496,7 +497,7 @@ def export_excel(filters=None):
     wb.remove(wb.active)
     def sheet(name, headers, rows):
         ws = wb.create_sheet(name)
-        ws.sheet_view.rightToLeft = True
+        ws.sheet_view.rightToLeft = str(getattr(frappe.local, 'lang', 'en')).split('-')[0] in ('ar', 'he', 'fa', 'ur')
         ws.append(headers)
         for row in rows:
             ws.append(row)
@@ -517,33 +518,50 @@ def export_excel(filters=None):
             ws.column_dimensions[get_column_letter(i)].width = 24
         return ws
     columns = report['columns']
-    sheet('التقرير', [c['label'] for c in columns] + ['نوع الصف', 'تنبيهات'],
-          [[r.get(c['fieldname']) for c in columns] + [r.get('row_kind'), '؛ '.join(r.get('warnings', []))]
+    sheet(_('Report'), [c['label'] for c in columns] + [_('Row Type'), _('Warnings')],
+          [[r.get(c['fieldname']) for c in columns] + [r.get('row_kind'), '; '.join(r.get('warnings', []))]
            for r in report['data']])
-    sheet('تفصيل الحسابات', ['نوع المستند', 'المستند', 'الحساب', 'مدين', 'دائن', 'صافي الضريبة', 'التصنيف'],
-          [[r['voucher_type'], r['invoice_no'], a['account'], a['debit'], a['credit'], a['tax_amount'], a['category']]
+    sheet(_('Account Details'), [_('Voucher Type'), _('Voucher'), _('Account'), _('Debit'), _('Credit'), _('Net Tax'), _('Classification')],
+          [[_(r['voucher_type']), r['invoice_no'], a['account'], a['debit'], a['credit'], a['tax_amount'], _(a['category'])]
            for r in report['documents'] for a in r['account_details']])
     fields = ['account', 'debit', 'credit', 'ledger_tax', 'document_tax', 'visible_tax', 'excluded_by_filters', 'difference']
-    sheet('المطابقة', ['الحساب', 'مدين', 'دائن', 'صافي الأستاذ', 'صافي المستندات', 'المعروض', 'مستبعد بالفلاتر', 'الفرق'],
+    sheet(_('Reconciliation'), [_('Account'), _('Debit'), _('Credit'), _('Ledger Net'), _('Document Net'), _('Visible Net'), _('Hidden by Filters'), _('Difference')],
           [[r[f] for f in fields] for r in report['reconciliation']])
     d = report['declaration']
-    sheet('الإقرار', ['البند', 'البيان', 'المبلغ', 'التعديل', 'الضريبة'],
+    sheet(_('VAT Return'), [_('Box'), _('Description'), _('Amount'), _('Adjustment'), _('Tax')],
           [[r['number'], r['label'], r['amount'], r['adjustment'], r['tax']] for r in d['rows']] +
-          [[None, 'صافي الضريبة للفترة', None, None, d['current_tax']],
-           [None, 'تصحيحات الفترات السابقة', None, None, d['previous_correction']],
-           [None, 'الرصيد المرحّل', None, None, d['carried_credit']],
-           [None, 'صافي مستحق مبدئي', None, None, d['payable']]])
-    sheet('المراجعة', ['نوع المستند', 'المستند', 'الملاحظة'],
-          [[r['voucher_type'], r['invoice_no'], r['message']] for r in report['warnings']] +
-          [[r['voucher_type'], r['invoice_no'], r['reason']] for r in d['pending']])
-    meta = [['الشركة', report['filters']['company']], ['العملة', report['currency']],
-            ['وقت الاستخراج', report['generated_at']], ['حالة الإقرار', 'مكتمل التصنيف' if d['complete'] else 'مسودة غير مكتملة'],
-            ['ملاحظة', 'صافي الفواتير كامل؛ المجاميع تشمل الأوعية المعروفة فقط. تفاصيل الحسابات لا تُجمع مرة ثانية.'],
-            ['مرجع شكل الإقرار', 'https://zatca.gov.sa/ar/HelpCenter/guidelines/Documents/إرشادات.pdf']]
+          [[None, _('Net VAT for the Period'), None, None, d['current_tax']],
+           [None, _('Previous Period Corrections'), None, None, d['previous_correction']],
+           [None, _('Carried Credit'), None, None, d['carried_credit']],
+           [None, _('Provisional VAT Payable'), None, None, d['payable']]])
+    sheet(_('Review'), [_('Voucher Type'), _('Voucher'), _('Note')],
+          [[_(r['voucher_type']), r['invoice_no'], r['message']] for r in report['warnings']] +
+          [[_(r['voucher_type']), r['invoice_no'], r['reason']] for r in d['pending']])
+    meta = [[_('Company'), report['filters']['company']], [_('Currency'), report['currency']],
+            [_('Generated At'), report['generated_at']], [_('Return Status'), _('Classification Complete') if d['complete'] else _('Incomplete Draft')],
+            [_('Note'), _('Invoice net amounts are complete; totals include known bases only. Do not sum account details again.')],
+            [_('Return Layout Source'), 'https://zatca.gov.sa/ar/HelpCenter/guidelines/Documents/إرشادات.pdf']]
     meta += [[k, json.dumps(v, ensure_ascii=False, default=str)] for k, v in report['filters'].items()]
-    sheet('الإعدادات', ['البيان', 'القيمة'], meta)
+    sheet(_('Settings'), [_('Description'), _('Value')], meta)
     stream = BytesIO()
     wb.save(stream)
     frappe.local.response.filename = 'All-Tax-Report.xlsx'
     frappe.local.response.filecontent = stream.getvalue()
     frappe.local.response.type = 'binary'
+
+
+@frappe.whitelist()
+def render_report_letter_head(filters=None, letter_head=None):
+    # Native report Print Formats use JS templates. Render letter-head Jinja
+    # on the server with the company context before the native print wrapper.
+    filters = _validate(frappe._dict(_json(filters, {})))
+    if not letter_head:
+        return {}
+    head = frappe.get_doc('Letter Head', letter_head)
+    head.check_permission('read')
+    context = {'doc': filters, 'filters': filters}
+    result = {}
+    for source, target in (('content', 'header'), ('footer', 'footer')):
+        if head.get(source):
+            result[target] = frappe.render_template(head.get(source), context)
+    return result

@@ -117,9 +117,9 @@ dret=ns['_declaration'](return_docs,D(declaration_mapping=[{'voucher_type':'Purc
 assert dret['rows'][6]['amount']==-50 and dret['rows'][6]['tax']==-7.5
 ns['export_excel'](base)
 wb=load_workbook(io.BytesIO(f.local.response.filecontent))
-assert len(wb.sheetnames)==6 and 'الإقرار' in wb.sheetnames
+assert len(wb.sheetnames)==6 and 'VAT Return' in wb.sheetnames
 assert not any(c.data_type=='f' for ws in wb for row in ws for c in row)
-assert wb['التقرير'].cell(wb['التقرير'].max_row,9).value==59.5
+assert wb['Report'].cell(wb['Report'].max_row,9).value==59.5
 # Preview uses the actual HTML generator, not a generated concept image.
 preview=ns['get_print_data'](base,'declaration');preview['declaration']=d
 preview['declaration']['restricted_scope']=False
@@ -128,3 +128,44 @@ preview['filters']['company']='شركة المثال'
 for x in root.rglob('*.py'):ast.parse(x.read_text(encoding='utf-8-sig'),filename=str(x))
 for x in root.rglob('*.json'):json.loads(x.read_text(encoding='utf-8-sig'))
 print('PASS: full mocked report pipeline, GL signs, cancellation/company/date/account scope, duplicate voucher names across types, zero transfers, unknown GL types, returns, item/detail totals, classifications, filtered reconciliation, non-taxed invoices, declaration/manual bases, validation, XLSX sheets and numeric/formula safety, Python/JSON syntax.')
+
+# Cards removed; native formats receive one non-circular metadata snapshot.
+result=ns['execute'](base)
+assert result[4]==[]
+assert result[1][-1]['_tax_print']['currency']=='SAR'
+assert result[1][-1]['_tax_print']['declaration']['restricted_scope']
+assert result[0][1]['fieldname']=='voucher_type_label'
+assert docs[('Sales Invoice','SAME')]['voucher_type']=='Sales Invoice'
+# Language switches in the same process must not reuse module-import translations.
+import csv
+translation_path=root/'mu_reports/translations/ar.csv'
+translations={row[0]:row[1] for row in csv.reader(translation_path.open(encoding='utf-8-sig')) if len(row)>1}
+ns['_']=lambda text:translations.get(text,text)
+ar_result=ns['execute'](base)
+assert ar_result[4]==[]
+ar_docs=[r for r in ar_result[1] if r['row_kind']=='document']
+assert next(r for r in ar_docs if r['voucher_type']=='Sales Invoice')['voucher_type_label']=='فاتورة مبيعات'
+assert next(r for r in ar_result[1] if r['row_kind']=='section')['invoice_no']=='فواتير المبيعات'
+assert any(r.get('invoice_no')=='إجمالي فواتير المبيعات' for r in ar_result[1])
+assert ar_result[1][-1]['invoice_no']=='المجموع الإجمالي'
+assert ar_result[1][-1]['_tax_print']['declaration']['rows'][0]['label']=='المبيعات الخاضعة للنسبة الأساسية'
+ns['_']=lambda text:text
+assert next(r for r in ns['execute'](base)[1] if r['row_kind']=='section')['invoice_no']=='Sales Invoices'
+# Native Letter Head content is rendered as Jinja server-side, never copied raw.
+head=D(content='{% set title = doc.company %}<h1>{{ title }}</h1>',footer='<p>{{ filters.company }}</p>',check_permission=lambda p:None)
+f.get_doc=lambda dt,name:head
+render_calls=[]
+def render_fixture(text,context):
+    render_calls.append((text,context))
+    assert context['doc'].company=='Co' and context['filters'].company=='Co'
+    return '<h1>Co</h1>' if text==head.content else '<p>Co</p>'
+f.render_template=render_fixture
+rendered=ns['render_report_letter_head'](base,'Test Head')
+assert len(render_calls)==2
+assert rendered['header']=='<h1>Co</h1>' and rendered['footer']=='<p>Co</p>'
+assert '{{' not in rendered['header'] and '{%' not in rendered['header']
+assert ns['render_report_letter_head'](base,None)=={}
+formats=json.loads((root/'mu_reports/fixtures/print_format.json').read_text(encoding='utf-8'))
+assert len(formats)==3 and all(r['print_format_for']=='Report' and r['print_format_type']=='JS' and r['report']=='All Tax Report' for r in formats)
+assert formats[0]['html']==(root/'mu_reports/mu_reports/report/all_tax_report/all_tax_report.html').read_text(encoding='utf-8')
+print('PASS: no summary cards, raw/translated voucher types, per-request Arabic/English labels, native format registration/default, server letter-head renderer delegation (mocked).')
