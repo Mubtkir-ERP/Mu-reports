@@ -449,11 +449,11 @@ def get_columns():
 
 def execute(filters=None):
     if not filters:
-        return get_columns(), [], ""
+        return get_columns(), [], "", None, [], 1
     filters = frappe._dict(filters)
     accounts = normalize_tax_accounts(filters.get('tax_accounts'))
     if not accounts or not filters.get('company') or not filters.get('from_date') or not filters.get('to_date'):
-        return get_columns(), [], _('Please select at least one Tax Account to filter by.')
+        return get_columns(), [], _('Please select at least one Tax Account to filter by.'), None, [], 1
     result = _attach_declaration(_build(filters))
     if result['data']:
         result['data'][-1]['_tax_print'] = {k: result[k] for k in

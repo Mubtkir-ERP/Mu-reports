@@ -11,73 +11,234 @@ const taxBoxes = {1:__("Sales subject to the standard rate"),2:__("Private healt
     3:__("Domestic zero-rated sales"),4:__("Exports"),5:__("Exempt sales"),7:__("Standard-rated purchases"),
     8:__("Imports with VAT paid at import"),9:__("Reverse-charge imports"),
     10:__("Zero-rated purchases"),11:__("Exempt purchases")};
-function taxStorageKey(period = false) {
-    const f = frappe.query_report ? (frappe.query_report.get_filter_values() || {}) : {};
+
+function taxStorageKey(period = false, filters = null) {
+    let f = filters;
+    if (!f && frappe.query_report) {
+        if (typeof frappe.query_report.get_filter_value === 'function') {
+            f = {
+                company: frappe.query_report.get_filter_value('company'),
+                from_date: frappe.query_report.get_filter_value('from_date'),
+                to_date: frappe.query_report.get_filter_value('to_date')
+            };
+        }
+    }
+    f = f || {};
     return ['all-tax-v2', frappe.session.user, f.company || '', ...(period ? [f.from_date, f.to_date] : [])].join('|');
 }
-function taxLoad(period = false) {
-    try { return JSON.parse(localStorage.getItem(taxStorageKey(period)) || '{}'); }
+
+function taxLoad(period = false, filters = null) {
+    try { return JSON.parse(localStorage.getItem(taxStorageKey(period, filters)) || '{}'); }
     catch (_) { return {}; }
 }
+
 function taxFilters() {
-    const f = frappe.query_report ? (frappe.query_report.get_filter_values() || {}) : {};
-    const company = taxLoad(); const period = taxLoad(true);
+    const f = (frappe.query_report && typeof frappe.query_report.get_filter_values === 'function')
+        ? (frappe.query_report.get_filter_values() || {}) : {};
+    const company = taxLoad(false, f); const period = taxLoad(true, f);
     return {...f, account_classification: JSON.stringify(company.account_classification || []),
         declaration_mapping: JSON.stringify(period.declaration_mapping || []),
         declaration_manual: JSON.stringify(period.declaration_manual || []),
         previous_correction: period.previous_correction ?? null, carried_credit: period.carried_credit ?? null};
 }
-function taxSyncFilters(refresh = true) {
-    const f = taxFilters();
-    for (const key of ['account_classification','declaration_mapping','declaration_manual','previous_correction','carried_credit']) {
-        const filter = frappe.query_report && frappe.query_report.get_filter(key);
-        if (filter && filter.set_value) {
-            filter.set_value(f[key]);
+
+const taxSetTimeout = (fn, ms) => (typeof setTimeout !== 'undefined' ? setTimeout(fn, ms) : (typeof window !== 'undefined' && window.setTimeout ? window.setTimeout(fn, ms) : null));
+const taxClearTimeout = (id) => (typeof clearTimeout !== 'undefined' ? clearTimeout(id) : (typeof window !== 'undefined' && window.clearTimeout ? window.clearTimeout(id) : null));
+
+let taxRefreshTimer = null;
+function taxDebouncedRefresh(report) {
+    report = report || frappe.query_report;
+    if (!report || report.report_name !== 'All Tax Report' || report._no_refresh) return;
+    if (taxRefreshTimer) taxClearTimeout(taxRefreshTimer);
+    taxRefreshTimer = taxSetTimeout(() => {
+        if (report._no_refresh) return;
+        const vals = (typeof report.get_filter_values === 'function') ? (report.get_filter_values() || {}) : {};
+        const accts = vals.tax_accounts;
+        const hasAccts = Array.isArray(accts) ? accts.length > 0 : Boolean(accts && String(accts).trim());
+        if (vals.company && vals.from_date && vals.to_date && hasAccts) {
+            report.refresh();
         }
+    }, 200);
+}
+
+function taxSetupFilterValuesOverride(report) {
+    if (!report || report._tax_filter_values_overridden || typeof report.get_filter_values !== 'function') return;
+    report._tax_filter_values_overridden = true;
+    const orig_get_filter_values = report.get_filter_values.bind(report);
+    report.get_filter_values = function() {
+        const f = orig_get_filter_values() || {};
+        const company = taxLoad(false, f);
+        const period = taxLoad(true, f);
+        f.account_classification = JSON.stringify(company.account_classification || []);
+        f.declaration_mapping = JSON.stringify(period.declaration_mapping || []);
+        f.declaration_manual = JSON.stringify(period.declaration_manual || []);
+        f.previous_correction = period.previous_correction ?? null;
+        f.carried_credit = period.carried_credit ?? null;
+        return f;
+    };
+}
+
+function taxSetupAccountFilterListener(report) {
+    if (!report || typeof report.get_filter !== 'function') return;
+    const filter = report.get_filter('tax_accounts');
+    if (!filter) return;
+
+    if (typeof filter.set_values === 'function' && !filter._tax_hooked) {
+        filter._tax_hooked = true;
+        const orig_set_values = filter.set_values.bind(filter);
+        filter.set_values = function(...args) {
+            const ret = orig_set_values(...args);
+            taxDebouncedRefresh(report);
+            return ret;
+        };
     }
-    if (refresh && frappe.query_report && !frappe.query_report._no_refresh) {
-        frappe.query_report.refresh();
+
+    if (filter.$wrapper && !filter.$wrapper.data('tax-bound')) {
+        filter.$wrapper.data('tax-bound', true);
+        filter.$wrapper.on('click', '.btn-remove, .close, .badge', () => {
+            taxSetTimeout(() => taxDebouncedRefresh(report), 100);
+        });
+    }
+
+    if (filter.$input && !filter.$input.data('tax-bound')) {
+        filter.$input.data('tax-bound', true);
+        filter.$input.on('awesomplete-selectcomplete change input blur', () => {
+            taxSetTimeout(() => taxDebouncedRefresh(report), 100);
+        });
     }
 }
+
 async function taxCall(method, args = {}) {
     const response = await frappe.call({method: taxMethod + method,
         args: {filters: JSON.stringify(taxFilters()), ...args}});
     return response.message;
 }
+
 frappe.query_reports['All Tax Report'] = {
     filters: [
-        {fieldname:'from_date',label:__('From Date'),fieldtype:'Date',default:frappe.datetime.month_start(),on_change:()=>taxSyncFilters(true)},
-        {fieldname:'to_date',label:__('To Date'),fieldtype:'Date',default:frappe.datetime.get_today(),on_change:()=>taxSyncFilters(true)},
-        {fieldname:'tax_accounts',label:__('Tax Accounts'),fieldtype:'MultiSelectList',options:'Account',reqd:1,
-            get_data: txt => frappe.db.get_link_options('Account',txt,{company:frappe.query_report.get_filter_value('company'),is_group:0}),
-            on_change:()=>taxSyncFilters(true)},
-        {fieldname:'party',label:__('Party'),fieldtype:'Data',on_change:()=>taxSyncFilters(true)},
-        {fieldname:'invoice_no',label:__('Voucher No'),fieldtype:'Data',on_change:()=>taxSyncFilters(true)},
-        {fieldname:'company',label:__('Company'),fieldtype:'Link',options:'Company',reqd:1,
-            default:frappe.defaults.get_user_default('Company'),on_change:()=>taxSyncFilters(true)},
-        {fieldname:'show_items',label:__("Show Items"),fieldtype:'Check',default:0,on_change:()=>taxSyncFilters(true)},
-        {fieldname:'show_tax_details',label:__("Show Tax Account Details"),fieldtype:'Check',default:0,on_change:()=>taxSyncFilters(true)},
-        {fieldname:'voucher_type',label:__("Voucher Type"),fieldtype:'Select',
-            options:[{label:'',value:''},...['Sales Invoice','Purchase Invoice','Payment Entry','Vouchers Entry','Journal Entry'].map(value=>({value,label:__(value)}))],
-            on_change:()=>taxSyncFilters(true)},
-        {fieldname:'document_group',label:__("Document Group"),fieldtype:'Select',
-            options:[{label:__("All"),value:'All'},{label:__("Sales"),value:'Sales'},{label:__("Purchases"),value:'Purchases'},
-                {label:__("Returns Only"),value:'Returns'},{label:__("Payments and Journals Only"),value:'Settlements'}],default:'All',
-            on_change:()=>taxSyncFilters(true)},
-        {fieldname:'include_zero_tax',label:__("Include Zero Net Tax"),fieldtype:'Check',default:1,on_change:()=>taxSyncFilters(true)},
-        {fieldname:'include_non_taxed',label:__("Include Invoices with Zero Total Taxes"),fieldtype:'Check',default:0,on_change:()=>taxSyncFilters(true)},
-        ...['account_classification','declaration_mapping','declaration_manual','previous_correction','carried_credit']
-            .map(fieldname => ({fieldname,fieldtype:'Small Text',hidden:1,hidden_due_to_dependency:1,on_change:()=>{}}))
+        {
+            fieldname: 'from_date',
+            label: __('From Date'),
+            fieldtype: 'Date',
+            default: frappe.datetime.month_start(),
+            reqd: 1,
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'to_date',
+            label: __('To Date'),
+            fieldtype: 'Date',
+            default: frappe.datetime.get_today(),
+            reqd: 1,
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'tax_accounts',
+            label: __('Tax Accounts'),
+            fieldtype: 'MultiSelectList',
+            options: 'Account',
+            reqd: 1,
+            get_data: txt => frappe.db.get_link_options('Account', txt, {
+                company: frappe.query_report.get_filter_value('company'),
+                is_group: 0
+            }),
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'party',
+            label: __('Party'),
+            fieldtype: 'Data',
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'invoice_no',
+            label: __('Voucher No'),
+            fieldtype: 'Data',
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'company',
+            label: __('Company'),
+            fieldtype: 'Link',
+            options: 'Company',
+            reqd: 1,
+            default: frappe.defaults.get_user_default('Company'),
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'show_items',
+            label: __("Show Items"),
+            fieldtype: 'Check',
+            default: 0,
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'show_tax_details',
+            label: __("Show Tax Account Details"),
+            fieldtype: 'Check',
+            default: 0,
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'voucher_type',
+            label: __("Voucher Type"),
+            fieldtype: 'Select',
+            options: [
+                {label: '', value: ''},
+                ...['Sales Invoice', 'Purchase Invoice', 'Payment Entry', 'Vouchers Entry', 'Journal Entry'].map(value => ({
+                    value,
+                    label: __(value)
+                }))
+            ],
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'document_group',
+            label: __("Document Group"),
+            fieldtype: 'Select',
+            options: [
+                {label: __("All"), value: 'All'},
+                {label: __("Sales"), value: 'Sales'},
+                {label: __("Purchases"), value: 'Purchases'},
+                {label: __("Returns Only"), value: 'Returns'},
+                {label: __("Payments and Journals Only"), value: 'Settlements'}
+            ],
+            default: 'All',
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'include_zero_tax',
+            label: __("Include Zero Net Tax"),
+            fieldtype: 'Check',
+            default: 1,
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        },
+        {
+            fieldname: 'include_non_taxed',
+            label: __("Include Invoices with Zero Total Taxes"),
+            fieldtype: 'Check',
+            default: 0,
+            on_change: () => taxDebouncedRefresh(frappe.query_report)
+        }
     ],
+
     onload(report) {
+        taxSetupFilterValuesOverride(report);
+        taxSetupAccountFilterListener(report);
         taxNativePrinting(report);
         taxHideSummary(report);
         taxButtonsLifecycle(report);
         taxEnsureReviewButtons(report);
-        taxSyncFilters(false);
+        taxDebouncedRefresh(report);
     },
-    formatter(value,row,column,data,default_formatter) {
-        let formatted = default_formatter(value,row,column,data);
+
+    after_datatable_render(report) {
+        taxEnsureReviewButtons(report);
+        taxSetupAccountFilterListener(report);
+    },
+
+    formatter(value, row, column, data, default_formatter) {
+        let formatted = default_formatter(value, row, column, data);
         if (!data) return formatted;
         const kind = data.row_kind;
         if (kind === 'section') return column.fieldname === 'invoice_no' ? `<strong>${formatted}</strong>` : '';
@@ -85,7 +246,7 @@ frappe.query_reports['All Tax Report'] = {
         if (kind === 'item' && column.fieldname !== 'item_name') return '';
         if (column.fieldname === 'voucher_type_label') formatted = taxEscape(data.voucher_type_label || __(data.voucher_type || ''));
         if (kind === 'tax_detail') {
-            if (!['account','tax_amount','item_name'].includes(column.fieldname)) return '';
+            if (!['account', 'tax_amount', 'item_name'].includes(column.fieldname)) return '';
             if (column.fieldname === 'item_name') formatted = taxEscape(value);
             return `<span style="color:#666;padding-inline-start:14px">${formatted}</span>`;
         }
@@ -96,118 +257,281 @@ frappe.query_reports['All Tax Report'] = {
         return formatted;
     }
 };
+
 function taxEnsureReviewButtons(report) {
     if (!report || report.report_name !== 'All Tax Report' || !report.page) return;
     const groupLabel = __("Review");
     const toolbar = report.page.inner_toolbar;
-    let exists = false;
+
     if (toolbar && toolbar.length) {
-        const groupBtn = toolbar.find(`[data-label="${encodeURIComponent(groupLabel)}"]`);
-        if (groupBtn.length) exists = true;
-        if (!exists) {
-            toolbar.find('.inner-group-button, .btn-group').each(function() {
-                const txt = $(this).find('button').text().trim();
-                if (txt === groupLabel || txt.includes(groupLabel)) {
-                    exists = true;
+        if (typeof toolbar.removeClass === 'function') {
+            toolbar.removeClass('hide');
+        }
+        if (typeof toolbar.show === 'function') {
+            toolbar.show();
+        }
+        if (typeof toolbar.css === 'function') {
+            toolbar.css('display', 'flex');
+        }
+
+        let exists = false;
+        if (typeof toolbar.find === 'function') {
+            const groupBtn = toolbar.find(`[data-label="${encodeURIComponent(groupLabel)}"]`);
+            if (groupBtn && groupBtn.length) exists = true;
+            if (!exists) {
+                toolbar.find('.inner-group-button, .btn-group').each(function() {
+                    const btnText = $(this).find('button').text().trim();
+                    if (btnText === groupLabel || btnText.includes(groupLabel) || $(this).data('tax-review')) {
+                        exists = true;
+                    }
+                });
+            }
+        }
+
+        if (!exists && typeof report.page.add_inner_button === 'function') {
+            report.page.add_inner_button(__("Classify Tax Accounts"), taxAccountSettings, groupLabel);
+            report.page.add_inner_button(__("Configure VAT Return"), taxDeclarationSettings, groupLabel);
+            report.page.add_inner_button(__("Reconcile GL"), taxReconcile, groupLabel);
+            report.page.add_inner_button(__("Data Warnings"), taxWarnings, groupLabel);
+
+            if (typeof toolbar.find === 'function') {
+                const groupDiv = toolbar.find('.inner-group-button, .btn-group').last();
+                if (groupDiv && groupDiv.length && typeof groupDiv.attr === 'function') {
+                    groupDiv.attr('data-tax-review', '1');
                 }
-            });
+            }
+            if (typeof toolbar.removeClass === 'function') toolbar.removeClass('hide');
+            if (typeof toolbar.show === 'function') toolbar.show();
         }
     }
-    if (!exists) {
-        report.page.add_inner_button(__("Classify Tax Accounts"), taxAccountSettings, groupLabel);
-        report.page.add_inner_button(__("Configure VAT Return"), taxDeclarationSettings, groupLabel);
-        report.page.add_inner_button(__("Reconcile GL"), taxReconcile, groupLabel);
-        report.page.add_inner_button(__("Data Warnings"), taxWarnings, groupLabel);
+
+    if (report.page.add_menu_item && !report._tax_menu_items_added) {
+        report._tax_menu_items_added = true;
+        report.page.add_menu_item(__("Review: Classify Tax Accounts"), taxAccountSettings);
+        report.page.add_menu_item(__("Review: Configure VAT Return"), taxDeclarationSettings);
+        report.page.add_menu_item(__("Review: Reconcile GL"), taxReconcile);
+        report.page.add_menu_item(__("Review: Data Warnings"), taxWarnings);
     }
 }
+
 function taxButtonsLifecycle(report) {
-    if (report._tax_buttons_lifecycle || typeof report.refresh !== 'function') return;
-    report._tax_buttons_lifecycle = true;
-    const original = report.refresh.bind(report);
-    report.refresh = function(...args) {
-        const result = original(...args);
-        if (result && typeof result.then === 'function') {
-            return result.finally(() => taxEnsureReviewButtons(this));
-        }
-        taxEnsureReviewButtons(this);
-        return result;
-    };
+    if (!report || report._tax_lifecycle_hooked) return;
+    report._tax_lifecycle_hooked = true;
+
+    if (typeof report.refresh === 'function') {
+        const orig_refresh = report.refresh.bind(report);
+        report.refresh = function(...args) {
+            const result = orig_refresh(...args);
+            if (result && typeof result.then === 'function') {
+                return result.finally(() => taxEnsureReviewButtons(this));
+            }
+            taxEnsureReviewButtons(this);
+            return result;
+        };
+    }
+
+    if (typeof report.render === 'function') {
+        const orig_render = report.render.bind(report);
+        report.render = function(...args) {
+            const result = orig_render(...args);
+            taxEnsureReviewButtons(this);
+            taxSetupAccountFilterListener(this);
+            return result;
+        };
+    }
 }
+
 async function taxAccountSettings() {
-    const saved = taxLoad(); const accounts = taxFilters().tax_accounts || [];
-    const old = new Map((saved.account_classification || []).map(r=>[r.account,r]));
-    const d = new frappe.ui.Dialog({title:__("Classify Tax Accounts"),size:'large',fields:[
-        {fieldtype:'HTML',options:__("Classification is used for tax review. Excluded movements remain in GL reconciliation. Settings are stored in this browser for this user and company.")},
-        {fieldname:'rows',fieldtype:'Table',label:__("Accounts"),cannot_add_rows:1,cannot_delete_rows:1,
-            data:accounts.map(account=>({account,category:old.get(account)?.category || 'Unclassified'})),fields:[
-                {fieldname:'account',fieldtype:'Data',label:__("Account"),read_only:1,in_list_view:1},
-                {fieldname:'category',fieldtype:'Select',label:__("Classification"),in_list_view:1,
-                    options:[{label:__("Unclassified"),value:'Unclassified'},{label:__("Output"),value:'Output'},
-                        {label:__("Input"),value:'Input'},{label:__("Adjustment"),value:'Adjustment'},{label:__("Excluded"),value:'Excluded'}]}]}],
-        primary_action_label:__("Save"),primary_action:async values=>{
-            const updated = new Map((saved.account_classification || []).map(r=>[r.account,r]));
-            values.rows.forEach(r=>updated.set(r.account,{account:r.account,category:r.category}));
-            localStorage.setItem(taxStorageKey(),JSON.stringify({...saved,account_classification:[...updated.values()]}));
-            d.hide(); taxSyncFilters(true);
-        }});d.show();
+    const report = frappe.query_report;
+    const saved = taxLoad();
+    const filterVals = report ? (report.get_filter_values() || {}) : {};
+    let accounts = filterVals.tax_accounts || [];
+    if (typeof accounts === 'string') {
+        try { accounts = JSON.parse(accounts); } catch(_) { accounts = accounts.split(',').map(s=>s.trim()).filter(Boolean); }
+    }
+    const old = new Map((saved.account_classification || []).map(r => [r.account, r]));
+    const d = new frappe.ui.Dialog({
+        title: __("Classify Tax Accounts"),
+        size: 'large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                options: __("Classification is used for tax review. Excluded movements remain in GL reconciliation. Settings are stored in this browser for this user and company.")
+            },
+            {
+                fieldname: 'rows',
+                fieldtype: 'Table',
+                label: __("Accounts"),
+                cannot_add_rows: 1,
+                cannot_delete_rows: 1,
+                data: accounts.map(account => ({account, category: old.get(account)?.category || 'Unclassified'})),
+                fields: [
+                    {fieldname: 'account', fieldtype: 'Data', label: __("Account"), read_only: 1, in_list_view: 1},
+                    {
+                        fieldname: 'category',
+                        fieldtype: 'Select',
+                        label: __("Classification"),
+                        in_list_view: 1,
+                        options: [
+                            {label: __("Unclassified"), value: 'Unclassified'},
+                            {label: __("Output"), value: 'Output'},
+                            {label: __("Input"), value: 'Input'},
+                            {label: __("Adjustment"), value: 'Adjustment'},
+                            {label: __("Excluded"), value: 'Excluded'}
+                        ]
+                    }
+                ]
+            }
+        ],
+        primary_action_label: __("Save"),
+        primary_action: async values => {
+            const updated = new Map((saved.account_classification || []).map(r => [r.account, r]));
+            values.rows.forEach(r => updated.set(r.account, {account: r.account, category: r.category}));
+            localStorage.setItem(taxStorageKey(), JSON.stringify({...saved, account_classification: [...updated.values()]}));
+            d.hide();
+            if (report) report.refresh();
+        }
+    });
+    d.show();
 }
+
 async function taxDeclarationSettings() {
-    const result = await taxCall('get_review_data'); const saved = taxLoad(true);
-    const old = new Map((saved.declaration_mapping || []).map(r=>[r.voucher_type+'|'+r.invoice_no,r]));
-    const manual = new Map((saved.declaration_manual || []).map(r=>[Number(r.box),r]));
-    const d = new frappe.ui.Dialog({title:__("Configure VAT Return"),size:'extra-large',fields:[
-        {fieldtype:'HTML',options:__("Map each voucher once. Confirm the full invoice base only when it belongs entirely to one box and matches the selected account scope; otherwise enter the correct base manually. Payment amounts are not tax bases. Multi-box vouchers need manual allocation and review.")},
-        {fieldname:'mapping',label:__("Map Visible Vouchers"),fieldtype:'Table',cannot_add_rows:1,cannot_delete_rows:1,
-            data:result.documents.map(r=>({...old.get(r.voucher_type+'|'+r.invoice_no),voucher_type:r.voucher_type,voucher_type_label:__(r.voucher_type),invoice_no:r.invoice_no})),fields:[
-                {fieldname:'voucher_type',fieldtype:'Data',label:__("Type"),read_only:1,in_list_view:1},
-                {fieldname:'invoice_no',fieldtype:'Data',label:__("Voucher"),read_only:1,in_list_view:1},
-                {fieldname:'box',fieldtype:'Select',label:__("Return Box"),in_list_view:1,
-                    options:[{label:__("Unclassified"),value:''},...Object.entries(taxBoxes).map(([value,label])=>({value,label:value+' — '+label}))]},
-                {fieldname:'use_invoice_base',fieldtype:'Check',label:__("Confirm Full Invoice Base"),in_list_view:1},
-                {fieldname:'base_amount',fieldtype:'Data',label:__("Manual Base (Returns Negative)"),in_list_view:1}]},
-        {fieldtype:'Section Break',label:__("Separate Manual Additions \u2014 Do Not Duplicate Voucher Amounts")},
-        {fieldtype:'HTML',options:__("These are additions, not replacement totals. Explicitly enter zero for unused boxes after checking. Imports, deductions and corrections require review; no assumed tax rate is used.")},
-        {fieldname:'manual',label:__("Manual Additions and Adjustments (Company Currency)"),fieldtype:'Table',cannot_add_rows:1,cannot_delete_rows:1,
-            data:Object.entries(taxBoxes).map(([box,label])=>({box:Number(box),label,...manual.get(Number(box))})),fields:[
-                {fieldname:'box',fieldtype:'Int',label:__("Box"),read_only:1,in_list_view:1},
-                {fieldname:'label',fieldtype:'Data',label:__("Description"),read_only:1,in_list_view:1},
-                ...['amount','adjustment','tax'].map((fieldname,i)=>({fieldname,fieldtype:'Data',
-                    label:[__("Base Addition"),__("Base Adjustment"),__("Tax Addition")][i],in_list_view:1}))]},
-        {fieldname:'previous_correction',fieldtype:'Data',label:__("Previous Period VAT Correction (+ / -)"),default:saved.previous_correction},
-        {fieldname:'carried_credit',fieldtype:'Data',label:__("Carried VAT Credit (Positive)"),default:saved.carried_credit}
-    ],primary_action_label:__("Save"),primary_action:async values=>{
-        const merged = new Map((saved.declaration_mapping || []).map(r=>[r.voucher_type+'|'+r.invoice_no,r]));
-        values.mapping.forEach(r=>merged.set(r.voucher_type+'|'+r.invoice_no,r));
-        const settings = {...saved,declaration_mapping:[...merged.values()],declaration_manual:values.manual,
-            previous_correction:values.previous_correction ?? null,carried_credit:values.carried_credit ?? null};
-        // Validate on the server before storing invalid amounts or duplicate mappings.
-        const filters = {...taxFilters(),...settings};
-        await frappe.call({method:taxMethod+'get_print_data',args:{filters:JSON.stringify(filters),layout:'declaration'}});
-        localStorage.setItem(taxStorageKey(true),JSON.stringify(settings));d.hide();taxSyncFilters(true);
-    }});d.show();
+    const report = frappe.query_report;
+    const result = await taxCall('get_review_data');
+    const saved = taxLoad(true);
+    const old = new Map((saved.declaration_mapping || []).map(r => [r.voucher_type + '|' + r.invoice_no, r]));
+    const manual = new Map((saved.declaration_manual || []).map(r => [Number(r.box), r]));
+    const d = new frappe.ui.Dialog({
+        title: __("Configure VAT Return"),
+        size: 'extra-large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                options: __("Map each voucher once. Confirm the full invoice base only when it belongs entirely to one box and matches the selected account scope; otherwise enter the correct base manually. Payment amounts are not tax bases. Multi-box vouchers need manual allocation and review.")
+            },
+            {
+                fieldname: 'mapping',
+                label: __("Map Visible Vouchers"),
+                fieldtype: 'Table',
+                cannot_add_rows: 1,
+                cannot_delete_rows: 1,
+                data: result.documents.map(r => ({
+                    ...old.get(r.voucher_type + '|' + r.invoice_no),
+                    voucher_type: r.voucher_type,
+                    voucher_type_label: __(r.voucher_type),
+                    invoice_no: r.invoice_no
+                })),
+                fields: [
+                    {fieldname: 'voucher_type', fieldtype: 'Data', label: __("Type"), read_only: 1, in_list_view: 1},
+                    {fieldname: 'invoice_no', fieldtype: 'Data', label: __("Voucher"), read_only: 1, in_list_view: 1},
+                    {
+                        fieldname: 'box',
+                        fieldtype: 'Select',
+                        label: __("Return Box"),
+                        in_list_view: 1,
+                        options: [
+                            {label: __("Unclassified"), value: ''},
+                            ...Object.entries(taxBoxes).map(([value, label]) => ({value, label: value + ' — ' + label}))
+                        ]
+                    },
+                    {fieldname: 'use_invoice_base', fieldtype: 'Check', label: __("Confirm Full Invoice Base"), in_list_view: 1},
+                    {fieldname: 'base_amount', fieldtype: 'Data', label: __("Manual Base (Returns Negative)"), in_list_view: 1}
+                ]
+            },
+            {fieldtype: 'Section Break', label: __("Separate Manual Additions \u2014 Do Not Duplicate Voucher Amounts")},
+            {
+                fieldtype: 'HTML',
+                options: __("These are additions, not replacement totals. Explicitly enter zero for unused boxes after checking. Imports, deductions and corrections require review; no assumed tax rate is used.")
+            },
+            {
+                fieldname: 'manual',
+                label: __("Manual Additions and Adjustments (Company Currency)"),
+                fieldtype: 'Table',
+                cannot_add_rows: 1,
+                cannot_delete_rows: 1,
+                data: Object.entries(taxBoxes).map(([box, label]) => ({box: Number(box), label, ...manual.get(Number(box))})),
+                fields: [
+                    {fieldname: 'box', fieldtype: 'Int', label: __("Box"), read_only: 1, in_list_view: 1},
+                    {fieldname: 'label', fieldtype: 'Data', label: __("Description"), read_only: 1, in_list_view: 1},
+                    ...['amount', 'adjustment', 'tax'].map((fieldname, i) => ({
+                        fieldname,
+                        fieldtype: 'Data',
+                        label: [__("Base Addition"), __("Base Adjustment"), __("Tax Addition")][i],
+                        in_list_view: 1
+                    }))
+                ]
+            },
+            {fieldname: 'previous_correction', fieldtype: 'Data', label: __("Previous Period VAT Correction (+ / -)"), default: saved.previous_correction},
+            {fieldname: 'carried_credit', fieldtype: 'Data', label: __("Carried VAT Credit (Positive)"), default: saved.carried_credit}
+        ],
+        primary_action_label: __("Save"),
+        primary_action: async values => {
+            const merged = new Map((saved.declaration_mapping || []).map(r => [r.voucher_type + '|' + r.invoice_no, r]));
+            values.mapping.forEach(r => merged.set(r.voucher_type + '|' + r.invoice_no, r));
+            const settings = {
+                ...saved,
+                declaration_mapping: [...merged.values()],
+                declaration_manual: values.manual,
+                previous_correction: values.previous_correction ?? null,
+                carried_credit: values.carried_credit ?? null
+            };
+            const filters = {...taxFilters(), ...settings};
+            await frappe.call({method: taxMethod + 'get_print_data', args: {filters: JSON.stringify(filters), layout: 'declaration'}});
+            localStorage.setItem(taxStorageKey(true), JSON.stringify(settings));
+            d.hide();
+            if (report) report.refresh();
+        }
+    });
+    d.show();
 }
-function taxReviewDialog(title,html) {
-    const d = new frappe.ui.Dialog({title,size:'extra-large',fields:[{fieldtype:'HTML',fieldname:'content'}]});
-    d.fields_dict.content.$wrapper.html(html);d.show();return d;
+
+function taxReviewDialog(title, html) {
+    const d = new frappe.ui.Dialog({title, size: 'extra-large', fields: [{fieldtype: 'HTML', fieldname: 'content'}]});
+    d.fields_dict.content.$wrapper.html(html);
+    d.show();
+    return d;
 }
+
 function taxHtmlTable(headers, rows) {
-    return `<div style="overflow:auto"><table class="table table-bordered" dir="${frappe.utils.is_rtl() ? 'rtl' : 'ltr'}"><thead><tr>${headers.map(h=>`<th>${taxEscape(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    return `<div style="overflow:auto"><table class="table table-bordered" dir="${frappe.utils.is_rtl() ? 'rtl' : 'ltr'}"><thead><tr>${headers.map(h => `<th>${taxEscape(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
+
 async function taxReconcile() {
     const result = await taxCall('get_review_data');
-    const headers=['Account','Debit','Credit','Ledger Net','Document Net','Visible Net','Hidden by Filters','Difference'].map(label=>__(label));
-    const rows=result.reconciliation.map(r=>[taxEscape(r.account),...['debit','credit','ledger_tax','document_tax','visible_tax','excluded_by_filters','difference'].map(k=>taxNumber(r[k]))]);
-    const details=result.reconciliation_details.map(a=>[taxEscape(__(a.voucher_type)),taxEscape(a.invoice_no),taxEscape(a.account),taxNumber(a.debit),taxNumber(a.credit),taxNumber(a.tax_amount)]);
-    taxReviewDialog(__('Reconcile GL'), '<p>'+taxEscape(__('Reconciliation includes selected company, period, accounts and voucher before party, group and zero-net filters. Hidden rows are not accounting differences.'))+'</p>'+taxHtmlTable(headers,rows)+
-        '<h5>'+taxEscape(__('Voucher Details in Reconciliation Scope'))+'</h5>'+taxHtmlTable(['Type','Voucher','Account','Debit','Credit','Net Tax'].map(label=>__(label)),details));
+    const headers = ['Account', 'Debit', 'Credit', 'Ledger Net', 'Document Net', 'Visible Net', 'Hidden by Filters', 'Difference'].map(label => __(label));
+    const rows = result.reconciliation.map(r => [
+        taxEscape(r.account),
+        ...['debit', 'credit', 'ledger_tax', 'document_tax', 'visible_tax', 'excluded_by_filters', 'difference'].map(k => taxNumber(r[k]))
+    ]);
+    const details = result.reconciliation_details.map(a => [
+        taxEscape(__(a.voucher_type)),
+        taxEscape(a.invoice_no),
+        taxEscape(a.account),
+        taxNumber(a.debit),
+        taxNumber(a.credit),
+        taxNumber(a.tax_amount)
+    ]);
+    taxReviewDialog(
+        __('Reconcile GL'),
+        '<p>' + taxEscape(__('Reconciliation includes selected company, period, accounts and voucher before party, group and zero-net filters. Hidden rows are not accounting differences.')) + '</p>' +
+        taxHtmlTable(headers, rows) +
+        '<h5>' + taxEscape(__('Voucher Details in Reconciliation Scope')) + '</h5>' +
+        taxHtmlTable(['Type', 'Voucher', 'Account', 'Debit', 'Credit', 'Net Tax'].map(label => __(label)), details)
+    );
 }
+
 async function taxWarnings() {
-    const result=await taxCall('get_print_data',{layout:'declaration'});
-    const rows=result.warnings.map(r=>[taxEscape(__(r.voucher_type)),taxEscape(r.invoice_no),taxEscape(r.message)]);
-    result.declaration.pending.forEach(r=>rows.push([taxEscape(__(r.voucher_type)),taxEscape(r.invoice_no),taxEscape(r.reason)]));
-    const boxes=result.declaration.missing_boxes.join(', ') || __('None');
-    taxReviewDialog(__('Data Warnings'),'<p>'+taxEscape(__('Incomplete return boxes: {0}. Warnings do not change amounts automatically.',[boxes]))+'</p>'+taxHtmlTable(['Type','Voucher','Note'].map(label=>__(label)),rows));
+    const result = await taxCall('get_print_data', {layout: 'declaration'});
+    const rows = result.warnings.map(r => [taxEscape(__(r.voucher_type)), taxEscape(r.invoice_no), taxEscape(r.message)]);
+    result.declaration.pending.forEach(r => rows.push([taxEscape(__(r.voucher_type)), taxEscape(r.invoice_no), taxEscape(r.reason)]));
+    const boxes = result.declaration.missing_boxes.join(', ') || __('None');
+    taxReviewDialog(
+        __('Data Warnings'),
+        '<p>' + taxEscape(__('Incomplete return boxes: {0}. Warnings do not change amounts automatically.', [boxes])) + '</p>' +
+        taxHtmlTable(['Type', 'Voucher', 'Note'].map(label => __(label)), rows)
+    );
 }
+
 function taxHideSummary(report) {
     if (report.$summary) report.$summary.empty().hide();
     if (report._tax_summary_hidden || typeof report.render_summary !== 'function') return;
@@ -221,10 +545,10 @@ function taxHideSummary(report) {
         return original(summary);
     };
 }
+
 function taxNativePrinting(report) {
     if (report._tax_native_printing) return;
     report._tax_native_printing = true;
-    // Use the existing Print/PDF actions and dialog. No additional print button.
     for (const method of ['print_report', 'pdf_report']) {
         if (typeof report[method] !== 'function') continue;
         const original = report[method].bind(report);
@@ -233,7 +557,7 @@ function taxNativePrinting(report) {
             settings = settings || {};
             const name = settings.letter_head_name || (typeof settings.letter_head === 'string' ? settings.letter_head : null);
             if (settings.with_letter_head && name) {
-                const head = await taxCall('render_report_letter_head',{letter_head:name});
+                const head = await taxCall('render_report_letter_head', {letter_head: name});
                 settings.letter_head = head;
             }
             return original(settings);

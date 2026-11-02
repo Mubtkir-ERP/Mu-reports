@@ -26,7 +26,6 @@ for(lang of ['en','ar']){
   if(suffix==='detailed')assert(html.includes(lang==='ar'?'فاتورة مبيعات':'Sales Invoice'));
   const escaped=structuredClone(data);escaped.original_data.at(-1)._tax_print.filters.company='<script>bad()</script>';
   assert(!compile(pf.html)(escaped).includes('<script>bad()</script>'));
-
  }
 }
 // Test client integration without a Frappe site. No custom print buttons may be installed.
@@ -34,15 +33,23 @@ const script=fs.readFileSync(root+'/mu_reports/mu_reports/report/all_tax_report/
 const buttons=[];const filters={company:'Co',from_date:'2026-10-01',to_date:'2026-10-31',tax_accounts:['VAT']};
 const settings={};const events=[];
 let toolbarButtons=[];
-const toolbar={find:(selector)=>({length:toolbarButtons.filter(b=>b.group===selector).length,
- text(label){toolbarButtons.filter(b=>b.marker==='1').forEach(b=>b.label=label);return this;},attr(){return this;},
- each(cb){toolbarButtons.forEach((b,i)=>cb.call({find:()=>({text:()=>b.group||''})},i));}}),removeClass(){return this;}};
+const toolbar={find:(selector)=>{
+ const matched = toolbarButtons.filter(b=>selector.includes(encodeURIComponent(b.group)) || selector.includes(b.group) || (selector.includes('inner-group-button') && b.group));
+ return {length: matched.length,
+  text(label){return this;},
+  attr(){return this;},
+  css(){return this;},
+  show(){return this;},
+  last(){return {length: matched.length, attr(){return this;}};},
+  each(cb){matched.forEach((b,i)=>cb.call({find:()=>({text:()=>b.group||''}),data:()=>false},i));}
+ };
+},removeClass(){return this;},show(){return this;},css(){return this;},length:1};
 const report={report_name:'All Tax Report',_no_refresh:true,page:{inner_toolbar:toolbar,add_inner_button:(...a)=>{
  buttons.push(a);const b={label:a[0],group:a[2]};toolbarButtons.push(b);return {attr(k,v){return this;}};
-}},
- get_filter_values:()=>filters,get_filter:field=>({set_value:val=>{filters[field]=val}}),refresh:async()=>{toolbarButtons=[];},
+},add_menu_item:(...a)=>{}},
+ get_filter_values:()=>filters,get_filter:field=>({set_value:val=>{filters[field]=val}}),refresh:async function(){toolbarButtons=[];},
  print_report:async s=>events.push(['print',s]),pdf_report:async s=>events.push(['pdf',s])};
-const context={console,__:global.__,localStorage:{getItem:()=>null},frappe:{...global.frappe,boot:{lang:'en'},query_reports:{},query_report:report,session:{user:'test'},
+const context={console,__:global.__,setTimeout,clearTimeout,localStorage:{getItem:()=>null},frappe:{...global.frappe,boot:{lang:'en'},query_reports:{},query_report:report,session:{user:'test'},
  datetime:{month_start:()=>'',get_today:()=>''},defaults:{get_user_default:()=>''},call:async args=>{events.push(args);return {message:{header:'<h1>Rendered</h1>'}};}}};
 vm.createContext(context);vm.runInContext(script,context);vm.runInContext(script,context);
 (async()=>{
