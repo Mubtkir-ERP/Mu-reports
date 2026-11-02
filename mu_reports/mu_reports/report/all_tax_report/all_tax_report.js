@@ -12,7 +12,7 @@ const taxBoxes = {1:__("Sales subject to the standard rate"),2:__("Private healt
     8:__("Imports with VAT paid at import"),9:__("Reverse-charge imports"),
     10:__("Zero-rated purchases"),11:__("Exempt purchases")};
 function taxStorageKey(period = false) {
-    const f = frappe.query_report.get_filter_values() || {};
+    const f = frappe.query_report ? (frappe.query_report.get_filter_values() || {}) : {};
     return ['all-tax-v2', frappe.session.user, f.company || '', ...(period ? [f.from_date, f.to_date] : [])].join('|');
 }
 function taxLoad(period = false) {
@@ -20,19 +20,24 @@ function taxLoad(period = false) {
     catch (_) { return {}; }
 }
 function taxFilters() {
-    const f = frappe.query_report.get_filter_values() || {};
+    const f = frappe.query_report ? (frappe.query_report.get_filter_values() || {}) : {};
     const company = taxLoad(); const period = taxLoad(true);
     return {...f, account_classification: JSON.stringify(company.account_classification || []),
         declaration_mapping: JSON.stringify(period.declaration_mapping || []),
         declaration_manual: JSON.stringify(period.declaration_manual || []),
         previous_correction: period.previous_correction ?? null, carried_credit: period.carried_credit ?? null};
 }
-async function taxSyncFilters(refresh = true) {
+function taxSyncFilters(refresh = true) {
     const f = taxFilters();
     for (const key of ['account_classification','declaration_mapping','declaration_manual','previous_correction','carried_credit']) {
-        await frappe.query_report.get_filter(key).set_value(f[key]);
+        const filter = frappe.query_report && frappe.query_report.get_filter(key);
+        if (filter && filter.set_value) {
+            filter.set_value(f[key]);
+        }
     }
-    if (refresh && !frappe.query_report._no_refresh) frappe.query_report.refresh();
+    if (refresh && frappe.query_report && !frappe.query_report._no_refresh) {
+        frappe.query_report.refresh();
+    }
 }
 async function taxCall(method, args = {}) {
     const response = await frappe.call({method: taxMethod + method,
@@ -41,37 +46,35 @@ async function taxCall(method, args = {}) {
 }
 frappe.query_reports['All Tax Report'] = {
     filters: [
-        {fieldname:'from_date',label:__('From Date'),fieldtype:'Date',default:frappe.datetime.month_start(),on_change:()=>taxSyncFilters()},
-        {fieldname:'to_date',label:__('To Date'),fieldtype:'Date',default:frappe.datetime.get_today(),on_change:()=>taxSyncFilters()},
+        {fieldname:'from_date',label:__('From Date'),fieldtype:'Date',default:frappe.datetime.month_start(),on_change:()=>taxSyncFilters(true)},
+        {fieldname:'to_date',label:__('To Date'),fieldtype:'Date',default:frappe.datetime.get_today(),on_change:()=>taxSyncFilters(true)},
         {fieldname:'tax_accounts',label:__('Tax Accounts'),fieldtype:'MultiSelectList',options:'Account',reqd:1,
-            get_data: txt => frappe.db.get_link_options('Account',txt,{company:frappe.query_report.get_filter_value('company'),is_group:0})},
-        {fieldname:'party',label:__('Party'),fieldtype:'Data'},
-        {fieldname:'invoice_no',label:__('Voucher No'),fieldtype:'Data'},
+            get_data: txt => frappe.db.get_link_options('Account',txt,{company:frappe.query_report.get_filter_value('company'),is_group:0}),
+            on_change:()=>taxSyncFilters(true)},
+        {fieldname:'party',label:__('Party'),fieldtype:'Data',on_change:()=>taxSyncFilters(true)},
+        {fieldname:'invoice_no',label:__('Voucher No'),fieldtype:'Data',on_change:()=>taxSyncFilters(true)},
         {fieldname:'company',label:__('Company'),fieldtype:'Link',options:'Company',reqd:1,
-            default:frappe.defaults.get_user_default('Company'),on_change:()=>taxSyncFilters()},
-        {fieldname:'show_items',label:__("Show Items"),fieldtype:'Check',default:0},
-        {fieldname:'show_tax_details',label:__("Show Tax Account Details"),fieldtype:'Check',default:0},
+            default:frappe.defaults.get_user_default('Company'),on_change:()=>taxSyncFilters(true)},
+        {fieldname:'show_items',label:__("Show Items"),fieldtype:'Check',default:0,on_change:()=>taxSyncFilters(true)},
+        {fieldname:'show_tax_details',label:__("Show Tax Account Details"),fieldtype:'Check',default:0,on_change:()=>taxSyncFilters(true)},
         {fieldname:'voucher_type',label:__("Voucher Type"),fieldtype:'Select',
-            options:[{label:'',value:''},...['Sales Invoice','Purchase Invoice','Payment Entry','Vouchers Entry','Journal Entry'].map(value=>({value,label:__(value)}))]},
+            options:[{label:'',value:''},...['Sales Invoice','Purchase Invoice','Payment Entry','Vouchers Entry','Journal Entry'].map(value=>({value,label:__(value)}))],
+            on_change:()=>taxSyncFilters(true)},
         {fieldname:'document_group',label:__("Document Group"),fieldtype:'Select',
             options:[{label:__("All"),value:'All'},{label:__("Sales"),value:'Sales'},{label:__("Purchases"),value:'Purchases'},
-                {label:__("Returns Only"),value:'Returns'},{label:__("Payments and Journals Only"),value:'Settlements'}],default:'All'},
-        {fieldname:'include_zero_tax',label:__("Include Zero Net Tax"),fieldtype:'Check',default:1},
-        {fieldname:'include_non_taxed',label:__("Include Invoices with Zero Total Taxes"),fieldtype:'Check',default:0},
+                {label:__("Returns Only"),value:'Returns'},{label:__("Payments and Journals Only"),value:'Settlements'}],default:'All',
+            on_change:()=>taxSyncFilters(true)},
+        {fieldname:'include_zero_tax',label:__("Include Zero Net Tax"),fieldtype:'Check',default:1,on_change:()=>taxSyncFilters(true)},
+        {fieldname:'include_non_taxed',label:__("Include Invoices with Zero Total Taxes"),fieldtype:'Check',default:0,on_change:()=>taxSyncFilters(true)},
         ...['account_classification','declaration_mapping','declaration_manual','previous_correction','carried_credit']
             .map(fieldname => ({fieldname,fieldtype:'Small Text',hidden:1,hidden_due_to_dependency:1,on_change:()=>{}}))
     ],
     onload(report) {
         taxNativePrinting(report);
         taxHideSummary(report);
-        taxExportLifecycle(report);
-        report.page.add_inner_button(__("Classify Tax Accounts"),taxAccountSettings,__("Review"));
-        report.page.add_inner_button(__("Configure VAT Return"),taxDeclarationSettings,__("Review"));
-        report.page.add_inner_button(__("Reconcile GL"),taxReconcile,__("Review"));
-        report.page.add_inner_button(__("Data Warnings"),taxWarnings,__("Review"));
-        taxEnsureExport(report);
-        // Restore classifications before subsequent report runs; keys are company/period scoped.
-        return taxSyncFilters(false);
+        taxButtonsLifecycle(report);
+        taxEnsureReviewButtons(report);
+        taxSyncFilters(false);
     },
     formatter(value,row,column,data,default_formatter) {
         let formatted = default_formatter(value,row,column,data);
@@ -93,46 +96,42 @@ frappe.query_reports['All Tax Report'] = {
         return formatted;
     }
 };
-function taxEnsureExport(report) {
-    if (report.report_name !== 'All Tax Report') return;
-    const label = __('Export Excel');
+function taxEnsureReviewButtons(report) {
+    if (!report || report.report_name !== 'All Tax Report' || !report.page) return;
+    const groupLabel = __("Review");
     const toolbar = report.page.inner_toolbar;
-    const existing = toolbar && toolbar.find('button[data-tax-export="1"]');
-    if (existing && existing.length) {
-        existing.text(label).attr('data-label', encodeURIComponent(label));
-        toolbar.removeClass('hide');
-        return;
+    let exists = false;
+    if (toolbar && toolbar.length) {
+        const groupBtn = toolbar.find(`[data-label="${encodeURIComponent(groupLabel)}"]`);
+        if (groupBtn.length) exists = true;
+        if (!exists) {
+            toolbar.find('.inner-group-button, .btn-group').each(function() {
+                const txt = $(this).find('button').text().trim();
+                if (txt === groupLabel || txt.includes(groupLabel)) {
+                    exists = true;
+                }
+            });
+        }
     }
-    const button = report.page.add_inner_button(label, taxExportExcel);
-    if (button && button.attr) button.attr('data-tax-export', '1');
+    if (!exists) {
+        report.page.add_inner_button(__("Classify Tax Accounts"), taxAccountSettings, groupLabel);
+        report.page.add_inner_button(__("Configure VAT Return"), taxDeclarationSettings, groupLabel);
+        report.page.add_inner_button(__("Reconcile GL"), taxReconcile, groupLabel);
+        report.page.add_inner_button(__("Data Warnings"), taxWarnings, groupLabel);
+    }
 }
-function taxExportLifecycle(report) {
-    if (report._tax_export_lifecycle || typeof report.refresh !== 'function') return;
-    report._tax_export_lifecycle = true;
+function taxButtonsLifecycle(report) {
+    if (report._tax_buttons_lifecycle || typeof report.refresh !== 'function') return;
+    report._tax_buttons_lifecycle = true;
     const original = report.refresh.bind(report);
     report.refresh = function(...args) {
-        taxEnsureExport(this);
         const result = original(...args);
         if (result && typeof result.then === 'function') {
-            // Native refresh/page setup may rebuild the toolbar after onload.
-            return result.finally(() => taxEnsureExport(this));
+            return result.finally(() => taxEnsureReviewButtons(this));
         }
-        taxEnsureExport(this);
+        taxEnsureReviewButtons(this);
         return result;
     };
-}
-async function taxExportExcel() {
-    try {
-        const response = await fetch('/api/method/' + taxMethod + 'export_excel', {method:'POST',
-            headers:{'Content-Type':'application/json','X-Frappe-CSRF-Token':frappe.csrf_token},
-            body:JSON.stringify({filters:JSON.stringify(taxFilters())})});
-        if (!response.ok || !(response.headers.get('content-type') || '').includes('application/')) throw new Error(__("Export failed; check the inputs and permissions"));
-        const blob = await response.blob();
-        if ((response.headers.get('content-type') || '').includes('json')) throw new Error(__("The server did not return an Excel file"));
-        const url=URL.createObjectURL(blob);const link=document.createElement('a');
-        link.href=url;link.download='All-Tax-Report.xlsx';document.body.appendChild(link);link.click();link.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),10000);
-    } catch(e){frappe.msgprint(taxEscape(e.message || e));}
 }
 async function taxAccountSettings() {
     const saved = taxLoad(); const accounts = taxFilters().tax_accounts || [];
@@ -149,7 +148,7 @@ async function taxAccountSettings() {
             const updated = new Map((saved.account_classification || []).map(r=>[r.account,r]));
             values.rows.forEach(r=>updated.set(r.account,{account:r.account,category:r.category}));
             localStorage.setItem(taxStorageKey(),JSON.stringify({...saved,account_classification:[...updated.values()]}));
-            d.hide(); await taxSyncFilters();
+            d.hide(); taxSyncFilters(true);
         }});d.show();
 }
 async function taxDeclarationSettings() {
@@ -184,7 +183,7 @@ async function taxDeclarationSettings() {
         // Validate on the server before storing invalid amounts or duplicate mappings.
         const filters = {...taxFilters(),...settings};
         await frappe.call({method:taxMethod+'get_print_data',args:{filters:JSON.stringify(filters),layout:'declaration'}});
-        localStorage.setItem(taxStorageKey(true),JSON.stringify(settings));d.hide();await taxSyncFilters();
+        localStorage.setItem(taxStorageKey(true),JSON.stringify(settings));d.hide();taxSyncFilters(true);
     }});d.show();
 }
 function taxReviewDialog(title,html) {
@@ -241,5 +240,4 @@ function taxNativePrinting(report) {
         };
     }
 }
-
 })();

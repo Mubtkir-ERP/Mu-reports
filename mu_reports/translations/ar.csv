@@ -1,251 +1,279 @@
-Customer Balances by Sales Person,أرصدة العملاء حسب المندوب
-Company,الشركة
-Sales Person,مندوب المبيعات
-From Date,من تاريخ
-To Date,إلى تاريخ
-Customer,العميل
-Customer Name,اسم العميل
-Customer Group,مجموعة العملاء
-Territory,المنطقة
-Opening Balance,الرصيد الافتتاحي
-Invoiced Amount,المبلغ المفوتر
-Paid Amount,المبلغ المدفوع
-Credit Note,إشعار دائن
-Closing Balance,الرصيد الختامي
-Currency,العملة
-Company is mandatory,الشركة إلزامية
-Sales Person is mandatory,مندوب المبيعات إلزامي
-From Date must be before To Date,من تاريخ يجب أن يكون قبل إلى تاريخ
-General Ledger,دفتر الأستاذ العام
-Finance Book,دفتر المالية
+'Closing (Opening + Total)','الختامي (الافتتاحي + الإجمالي)'
+'Opening','افتتاحي'
+'Total','الإجمالي'
+A blank base is unavailable; totals include known net amounts only.,الخانة الفارغة تعني وعاءً غير متاح؛ المجاميع تشمل الصافي المعروف فقط.
 Account,الحساب
-Voucher No,رقم المستند
-Against Voucher No,رقم المستند المقابل
-Party Type,نوع الطرف
-Party,الطرف
-Party Name,اسم الطرف
-Categorize by,تصنيف حسب
-Categorize by Voucher,تصنيف حسب المستند
-"Categorize by Voucher (Consolidated)",تصنيف حسب المستند (مجمع)
-Categorize by Account,تصنيف حسب الحساب
-Categorize by Party,تصنيف حسب الطرف
-Tax Id,الرقم الضريبي
-Cost Center,مركز التكلفة
-Project,المشروع
-Consider Accounting Dimensions,اعتبار الأبعاد المحاسبية
-Show Opening Entries,إظهار القيود الافتتاحية
-Include Default FB Entries,تضمين قيود دفتر المالية الافتراضي
-Show Cancelled Entries,إظهار القيود الملغاة
-Show Net Values in Party Account,إظهار صافي القيم في حساب الطرف
-Show Credit / Debit in Company Currency,إظهار الدائن / المدين بعملة الشركة
+Account Details,تفصيل الحسابات
+Account details are explanatory; each document contributes to totals only once.,تفاصيل الحسابات للشرح؛ إجمالي المستند يُحتسب مرة واحدة فقط.
+Accounts,الحسابات
 Add Columns in Transaction Currency,إضافة أعمدة بعملة المعاملة
-Show Remarks,إظهار الملاحظات
-Ignore Exchange Rate Revaluation and Gain / Loss Journals,تجاهل قيود إعادة تقييم سعر الصرف وأرباح/خسائر فرق العملة
-Ignore System Generated Credit / Debit Notes,تجاهل إشعارات الدائن / المدين التي ينشئها النظام
-GL Entry,قيد دفتر الأستاذ العام
-Posting Date,تاريخ الترحيل
-Debit,مدين
-Credit,دائن
-Balance,الرصيد
-Debit (Transaction),مدين (عملة المعاملة)
-Credit (Transaction),دائن (عملة المعاملة)
-Transaction Currency,عملة المعاملة
-Voucher Type,نوع المستند
-Voucher Subtype,النوع الفرعي للمستند
+Additional Salary,راتب إضافي
+Adjustment,تسويات
 Against Account,الحساب المقابل
-Against Voucher Type,نوع المستند المقابل
 Against Voucher,المستند المقابل
-Supplier Invoice No,رقم فاتورة المورد
-Remarks,الملاحظات
-Opening,افتتاحي
-Total,الإجمالي
-Closing,الختامي
-"Closing (Opening + Total)","الختامي (الافتتاحي + الإجمالي)"
-Journal Entry,قيد يومية
-Sales Invoice,فاتورة مبيعات
-Purchase Invoice,فاتورة مشتريات
-Payment Entry,سند صرف/قبض
+Against Voucher No,رقم المستند المقابل
+Against Voucher Type,نوع المستند المقابل
+All,الكل
+All Tax Report,تقرير الضرائب الشامل
+All Tax Report - Detailed,التقرير الضريبي - مفصل
+All Tax Report - Summary,التقرير الضريبي - مختصر
+All Tax Report - VAT Return,التقرير الضريبي - جدول الإقرار
+Amount,المبلغ
+Amount Before VAT,المبلغ قبل الضريبة
+Amounts are in company currency. The full invoice net amount is not allocated to selected tax accounts.,المبالغ بعملة الشركة. صافي الفاتورة كامل وليس موزعًا على الحسابات المختارة.
 Asset Depr Schedule,جدول إهلاك الأصول
 Asset Depreciation,إهلاك الأصول
-Purchase Receipt,سند استلام مشتريات
-Delivery Note,سند توصيل
-Stock Entry,قيد مخزون
-Sales Receipt,إيصال مبيعات
-Stock Reconciliation,تسوية مخزون
-Expense Claim,طلب مصروفات
-Landed Cost Voucher,مستند التكاليف الإضافية
-Payroll Entry,قيد رواتب
-Employee Referrals,إحالات الموظفين
-Additional Salary,راتب إضافي
-Subcontracting Receipt,سند استلام تعاقد باطن
-Bank Transaction,معاملة بنكية
-Customer,عميل
-Supplier,مورد
-Employee,موظف
-Shareholder,مساهم
-Member,عضو
-Student,طالب
-Donor,متبرع
-Debit ({0}),مدين ({0})
-Credit ({0}),دائن ({0})
+Balance,الرصيد
 Balance ({0}),الرصيد ({0})
-"'Opening'","'افتتاحي'"
-"'Total'","'الإجمالي'"
-"'Closing (Opening + Total)'","'الختامي (الافتتاحي + الإجمالي)'"
-Vouchers Entry,قيد سندات
-"Party Name","اسم الطرف المعني"Sales subject to the standard rate,المبيعات الخاضعة للنسبة الأساسية
-Sales to citizens: private healthcare and education,المبيعات للمواطنين: الخدمات الصحية والتعليم الأهلي
-Domestic zero-rated sales,المبيعات المحلية الصفرية
-Exports,الصادرات
-Exempt sales,المبيعات المعفاة
-Purchases subject to the standard rate,المشتريات الخاضعة للنسبة الأساسية
-Standard-rated imports with VAT paid at import,الاستيرادات الخاضعة للنسبة الأساسية والمدفوعة عند الاستيراد
-Standard-rated imports under reverse charge,الاستيرادات الخاضعة للنسبة الأساسية وفق الاحتساب العكسي
-Zero-rated purchases,المشتريات الصفرية
-Exempt purchases,المشتريات المعفاة
-Amounts are in company currency. The full invoice net amount is not allocated to selected tax accounts. ,المبالغ بعملة الشركة. صافي الفاتورة كامل وليس موزعًا على الحسابات المختارة. 
-A blank base is unavailable; totals include known net amounts only. ,الخانة الفارغة تعني وعاءً غير متاح؛ المجاميع تشمل الصافي المعروف فقط. 
-Account details are explanatory; each document contributes to totals only once. ,تفاصيل الحسابات للشرح؛ إجمالي المستند يُحتسب مرة واحدة فقط. 
-Review warnings: ,تنبيهات المراجعة: 
-Report,التقرير
-Account Details,تفصيل الحسابات
-Reconciliation,المطابقة
-VAT Return,الإقرار
-Review,المراجعة
-Settings,الإعدادات
-Total Sales,إجمالي المبيعات
-Total Purchases,إجمالي المشتريات
-Output VAT,ضريبة المخرجات
-Input VAT,ضريبة المدخلات
-Classified Adjustments,التسويات المصنفة
-Unclassified (Net),غير مصنف (صافي)
-Excluded from Return (Net),مستبعد من الإقرار (صافي)
-Net Tax Movement,صافي حركة الضريبة
-Row Type,نوع الصف
-Warnings,تنبيهات
-Voucher,المستند
-Net Tax,صافي الضريبة
-Classification,التصنيف
-Ledger Net,صافي الأستاذ
-Document Net,صافي المستندات
-Visible Net,المعروض
-Hidden by Filters,مخفي بالفلاتر
-Difference,الفرق
-Box,البند
-Description,البيان
-Amount,المبلغ
-Adjustment,تسويات
-Tax,الضريبة
-Net VAT for the Period,صافي الضريبة للفترة
-Previous Period Corrections,تصحيحات الفترات السابقة
-Carried Credit,الرصيد المرحّل
-Provisional VAT Payable,صافي مستحق مبدئي
-Note,ملاحظة
-Generated At,وقت الاستخراج
-Return Status,حالة الإقرار
-Classification Complete,مكتمل التصنيف
-Incomplete Draft,مسودة غير مكتملة
-Invoice net amounts are complete; totals include known bases only. Do not sum account details again.,صافي الفواتير كامل؛ المجاميع تشمل الأوعية المعروفة فقط. تفاصيل الحسابات لا تُجمع مرة ثانية.
-Return Layout Source,مرجع شكل الإقرار
-VAT registration number is missing,الرقم الضريبي غير متوفر
-Tax base is unavailable; a payment amount is not a tax base,الوعاء الضريبي غير متاح؛ مبلغ السداد ليس وعاءً ضريبيًا
-Tax account is unclassified,حساب ضريبة غير مصنف
-Source document is unavailable; the amount comes from GL,المستند المصدر غير متاح؛ المبلغ مأخوذ من الأستاذ
-Document status conflicts with uncancelled GL movement,حالة المستند لا تتفق مع حركة الأستاذ غير الملغاة
-Both debit and credit movements exist; review account details,توجد حركات مدينة ودائنة؛ راجع تفصيل الحسابات
-Tax sign differs from the invoice net direction,إشارة الضريبة تختلف عن اتجاه صافي الفاتورة
-Document is not mapped to a return box,المستند غير مصنف في الإقرار
-Tax base has not been entered or confirmed,الوعاء لم يُحدد أو يُعتمد
-Nonzero tax in a zero-rated or exempt box,ضريبة غير صفرية في بند صفري أو معفى
-Output,مخرجات
-Input,مدخلات
-Excluded,مستبعد من الإقرار
-Unclassified,غير مصنف
-Private healthcare and education for citizens,الخدمات الصحية والتعليم الأهلي للمواطنين
-Standard-rated purchases,المشتريات بالنسبة الأساسية
-Imports with VAT paid at import,الاستيرادات المدفوعة عند الاستيراد
-Reverse-charge imports,الاستيرادات وفق الاحتساب العكسي
-Show Items,إظهار المنتجات
-Show Tax Account Details,تفصيل حسابات الضريبة
-Document Group,مجموعة المستندات
-All,الكل
-Sales,المبيعات
-Purchases,المشتريات
-Returns Only,المرتجعات فقط
-Payments and Journals Only,السندات والقيود فقط
-Include Zero Net Tax,إظهار صافي الضريبة الصفري
-Include Invoices with Zero Total Taxes,إضافة الفواتير ذات إجمالي الضرائب الصفري
-Classify Tax Accounts,تصنيف حسابات الضريبة
-Configure VAT Return,إعداد جدول الإقرار
-Reconcile GL,مطابقة الأستاذ
-Data Warnings,تنبيهات البيانات
-Export Excel,تصدير Excel
-Accounts,الحسابات
-Save,حفظ
-Type,النوع
-Classification is used for tax review. Excluded movements remain in GL reconciliation. Settings are stored in this browser for this user and company.,التصنيف يحدد ملخص المخرجات والمدخلات والتسويات. الاستبعاد لا يحذف الحركة من مطابقة الأستاذ. الإعدادات محفوظة لهذا المستخدم والشركة في هذا المتصفح.
-Map each voucher once. Confirm the full invoice base only when it belongs entirely to one box and matches the selected account scope; otherwise enter the correct base manually. Payment amounts are not tax bases. Multi-box vouchers need manual allocation and review.,صنّف كل مستند مرة واحدة. اعتمد كامل صافي الفاتورة فقط إذا كان الوعاء يخص بندًا واحدًا بالكامل ويطابق نطاق الحسابات المختارة؛ وإلا أدخل الوعاء الصحيح يدويًا. لا يُستنتج الوعاء من السداد. المستند متعدد بنود الإقرار يبقى للمراجعة؛ استخدم الإضافات اليدوية بعد مراجعة توزيعه.
-Map Visible Vouchers,تصنيف المستندات الظاهرة
-Return Box,بند الإقرار
-Confirm Full Invoice Base,اعتماد كامل صافي الفاتورة
-Manual Base (Returns Negative),وعاء يدوي (المرتجع بالسالب)
-Separate Manual Additions — Do Not Duplicate Voucher Amounts,إضافات يدوية مستقلة — لا تكرر مبالغ المستندات أعلاه
-"These are additions, not replacement totals. Explicitly enter zero for unused boxes after checking. Imports, deductions and corrections require review; no assumed tax rate is used.",الخانات هنا مبالغ إضافية وليست بديلًا عن الإجماليات المحسوبة. أدخل صفرًا صراحةً للبند غير المستخدم بعد التحقق. مبالغ الاستيراد والخصم والتصحيحات تحتاج مراجعة؛ لا يحسبها التقرير من نسبة مفترضة.
-Manual Additions and Adjustments (Company Currency),الإضافات والتعديلات (ريال / عملة الشركة)
+Bank Transaction,معاملة بنكية
+Bank Transfer,تحويل بنكي
 Base Addition,إضافة للوعاء
 Base Adjustment,مبلغ تعديل الوعاء
-Tax Addition,إضافة للضريبة
-Previous Period VAT Correction (+ / -),تصحيح ضريبة فترات سابقة (+ / −)
+Both debit and credit movements exist; review account details,توجد حركات مدينة ودائنة؛ راجع تفصيل الحسابات
+Box,البند
+Cancelled,ملغي
+Carried Credit,الرصيد المرحّل
 Carried VAT Credit (Positive),رصيد ضريبي دائن مرحّل (موجب)
-Export failed; check the inputs and permissions,تعذر تصدير التقرير؛ راجع المدخلات والصلاحيات
-The server did not return an Excel file,لم يُرجع الخادم ملف Excel
-Sales Invoices,فواتير المبيعات
-Sales Returns,مرتجعات المبيعات
-Purchase Invoices,فواتير المشتريات
-Purchase Returns,مرتجعات المشتريات
-ERPNext Payment Entries,سندات القبض والصرف الأصلية
-Voucher Entries,السندات الخارجية
-Journal Entries,القيود اليومية
-Other GL Vouchers,مستندات الأستاذ الأخرى
-All Tax Report,تقرير جميع الضرائب
-All Tax Report - Summary,التقرير الضريبي - مختصر
-All Tax Report - Detailed,التقرير الضريبي - مفصل
-All Tax Report - VAT Return,التقرير الضريبي - جدول الإقرار
-Total {0},إجمالي {0}
-Grand Total,المجموع الإجمالي
-Tax Accounts,حسابات الضريبة
-Tax Account,حساب الضريبة
-VAT Registration Number,الرقم الضريبي
-Net Amount,صافي المبلغ
-Tax Amount,مبلغ الضريبة
-Item,الصنف
-Date,التاريخ
-Tax Report Summary,ملخص التقرير الضريبي
-Detailed Tax Report,التقرير الضريبي المفصل
-VAT Return Table,جدول إقرار ضريبة القيمة المضافة
-Known Net Amount,صافي المبلغ المعروف
-Tax Adjustment Amount,مبلغ تعديل الوعاء
-VAT Amount,مبلغ الضريبة
-Net VAT for the Period (Provisional),صافي الضريبة للفترة (مبدئي)
-VAT Payable (Provisional),صافي الضريبة المستحقة (مبدئي)
+Cash,نقد
+Categorize by,تصنيف حسب
+Categorize by Account,تصنيف حسب الحساب
+Categorize by Party,تصنيف حسب الطرف
+Categorize by Voucher,تصنيف حسب المستند
+Categorize by Voucher (Consolidated),تصنيف حسب المستند (مجمع)
+Cheque,شيك
+Classification,التصنيف
+Classification Complete,مكتمل التصنيف
 Classification complete for the entered data; review before filing.,مكتمل التصنيف حسب المدخلات؛ يحتاج مراجعة قبل التقديم.
-Incomplete draft: {0} vouchers require review. Incomplete boxes: {1}.,مسودة غير مكتملة: {0} مستندات تحتاج مراجعة. البنود غير المكتملة: {1}.
-"The report has a restricted scope. Remove party, type, group and voucher filters and include zero-tax invoices and zero-net movements.",نطاق التقرير مقيد. أزل فلاتر الطرف والنوع والمجموعة والمستند، وأظهر الفواتير ذات الضرائب الصفرية والحركات ذات الصافي الصفري.
-The company currency is not SAR; do not use these amounts for a Saudi VAT return.,عملة الشركة ليست الريال السعودي؛ لا تعتمد هذه الأرقام للإقرار.
-No report data. Refresh the report before printing.,لا توجد بيانات تقرير. حدّث التقرير قبل الطباعة.
-"Reconciliation includes selected company, period, accounts and voucher before party, group and zero-net filters. Hidden rows are not accounting differences.",تشمل المطابقة الشركة والفترة والحسابات والمستند قبل فلاتر الطرف والمجموعة والصافي الصفري. الصفوف المخفية ليست فروقًا محاسبية.
-Voucher Details in Reconciliation Scope,تفاصيل المستندات ضمن نطاق المطابقة
-Incomplete return boxes: {0}. Warnings do not change amounts automatically.,بنود الإقرار غير المكتملة: {0}. التنبيهات لا تغير الأرقام تلقائيًا.
-None,لا يوجد
-Review Warnings,تنبيهات المراجعة
-Print format is unavailable. Update the app and migrate the site.,صيغة الطباعة غير متاحة. حدّث التطبيق ونفّذ ترحيل الموقع.
-Returns,المرتجعات
-Settlements,السندات والقيود
-Letter head rendering failed. Check its template and company fields.,تعذر تجهيز الترويسة. راجع قالبها وحقول الشركة.
-Section,قسم
+Classification is used for tax review. Excluded movements remain in GL reconciliation. Settings are stored in this browser for this user and company.,التصنيف يحدد ملخص المخرجات والمدخلات والتسويات. الاستبعاد لا يحذف الحركة من مطابقة الأستاذ. الإعدادات محفوظة لهذا المستخدم والشركة في هذا المتصفح.
+Classified Adjustments,التسويات المصنفة
+Classify Tax Accounts,تصنيف حسابات الضريبة
+Closing,الختامي
+Closing (Opening + Total),الختامي (الافتتاحي + الإجمالي)
+Closing Balance,الرصيد الختامي
+Company,الشركة
+Company is mandatory,الشركة إلزامية
+Configure VAT Return,إعداد جدول الإقرار
+Confirm Full Invoice Base,اعتماد كامل صافي الفاتورة
+Consider Accounting Dimensions,اعتبار الأبعاد المحاسبية
+Cost Center,مركز التكلفة
+Credit,دائن
+Credit (Transaction),دائن (عملة المعاملة)
+Credit ({0}),دائن ({0})
+Credit Card,بطاقة ائتمان
+Credit Note,إشعار دائن
+Credit Note Issued,تم إصدار إشعار دائن
+Currency,العملة
+Customer,عميل
+Customer Balances by Sales Person,أرصدة العملاء حسب مندوب المبيعات
+Customer Group,مجموعة العملاء
+Customer Name,اسم العميل
+Data Warnings,تنبيهات البيانات
+Date,التاريخ
+Debit,مدين
+Debit (Transaction),مدين (عملة المعاملة)
+Debit ({0}),مدين ({0})
+Delivery Note,سند توصيل
+Description,البيان
+Detailed Tax Report,التقرير الضريبي المفصل
+Difference,الفرق
 Document,مستند
-Subtotal,إجمالي قسم
+Document Group,مجموعة المستندات
+Document Net,صافي المستندات
+Document is not mapped to a return box,المستند غير مصنف في الإقرار
+Document status conflicts with uncancelled GL movement,حالة المستند لا تتفق مع حركة الأستاذ غير الملغاة
+Domestic zero-rated sales,المبيعات المحلية الصفرية
+Donor,متبرع
+Draft,مسودة
+ERPNext Payment Entries,سندات القبض والصرف الأصلية
+Employee,موظف
+Employee Referrals,إحالات الموظفين
+Excluded,مستبعد من الإقرار
+Excluded from Return (Net),مستبعد من الإقرار (صافي)
+Exempt purchases,المشتريات المعفاة
+Exempt sales,المبيعات المعفاة
+Expense Claim,طلب مصروفات
+Export Excel,تصدير Excel
+Export failed; check the inputs and permissions,تعذر تصدير التقرير؛ راجع المدخلات والصلاحيات
+Exports,الصادرات
+Finance Book,دفتر المالية
+From Date,من تاريخ
+From Date must be before To Date,من تاريخ يجب أن يكون قبل إلى تاريخ
+From Time,من وقت
+GL Entry,قيد دفتر الأستاذ العام
+General Ledger,دفتر الأستاذ العام
+Generated At,وقت الاستخراج
+Grand Total,المجموع الإجمالي
+Hidden by Filters,مخفي بالفلاتر
+Ignore Exchange Rate Revaluation and Gain / Loss Journals,تجاهل قيود إعادة تقييم سعر الصرف وأرباح/خسائر فرق العملة
+Ignore System Generated Credit / Debit Notes,تجاهل إشعارات الدائن / المدين التي ينشئها النظام
+Imports with VAT paid at import,الاستيرادات المدفوعة عند الاستيراد
+Include Default FB Entries,تضمين قيود دفتر المالية الافتراضي
+Include Invoices with Zero Total Taxes,إضافة الفواتير ذات إجمالي الضرائب الصفري
+Include Zero Net Tax,إظهار صافي الضريبة الصفري
+Incomplete Draft,مسودة غير مكتملة
+Incomplete draft: {0} vouchers require review. Incomplete boxes: {1}.,مسودة غير مكتملة: {0} مستندات تحتاج مراجعة. البنود غير المكتملة: {1}.
+Incomplete return boxes: {0}. Warnings do not change amounts automatically.,بنود الإقرار غير المكتملة: {0}. التنبيهات لا تغير الأرقام تلقائيًا.
+Input,مدخلات
+Input VAT,ضريبة المدخلات
+Internal Transfer,تحويل داخلي
+Invoice net amounts are complete; totals include known bases only. Do not sum account details again.,صافي الفواتير كامل؛ المجاميع تشمل الأوعية المعروفة فقط. تفاصيل الحسابات لا تُجمع مرة ثانية.
+Invoiced Amount,المبلغ المفوتر
+Item,الصنف
 Item Row,صف صنف
-Tax Detail,تفصيل ضريبة
+Journal Entries,القيود اليومية
+Journal Entry,قيد يومية
+Known Net Amount,صافي المبلغ المعروف
+Landed Cost Voucher,مستند التكاليف الإضافية
+Ledger Net,صافي الأستاذ
+Letter head rendering failed. Check its template and company fields.,تعذر تجهيز الترويسة. راجع قالبها وحقول الشركة.
+Mada,مدى
+Manual Additions and Adjustments (Company Currency),الإضافات والتعديلات (ريال / عملة الشركة)
+Manual Base (Returns Negative),وعاء يدوي (المرتجع بالسالب)
+Map Visible Vouchers,تصنيف المستندات الظاهرة
+Map each voucher once. Confirm the full invoice base only when it belongs entirely to one box and matches the selected account scope; otherwise enter the correct base manually. Payment amounts are not tax bases. Multi-box vouchers need manual allocation and review.,صنّف كل مستند مرة واحدة. اعتمد كامل صافي الفاتورة فقط إذا كان الوعاء يخص بندًا واحدًا بالكامل ويطابق نطاق الحسابات المختارة؛ وإلا أدخل الوعاء الصحيح يدويًا. لا يُستنتج الوعاء من السداد. المستند متعدد بنود الإقرار يبقى للمراجعة؛ استخدم الإضافات اليدوية بعد مراجعة توزيعه.
+Mastercard,ماستركارد
+Member,عضو
+Net Amount,صافي المبلغ
+Net Profit,صافي الربح
+Net Tax,صافي الضريبة
+Net Tax Movement,صافي حركة الضريبة
+Net VAT for the Period,صافي الضريبة للفترة
+Net VAT for the Period (Provisional),صافي الضريبة للفترة (مبدئي)
+No report data. Refresh the report before printing.,لا توجد بيانات تقرير. حدّث التقرير قبل الطباعة.
+None,لا يوجد
+Nonzero tax in a zero-rated or exempt box,ضريبة غير صفرية في بند صفري أو معفى
+Note,ملاحظة
+Opening,افتتاحي
+Opening Balance,الرصيد الافتتاحي
+Other GL Vouchers,مستندات الأستاذ الأخرى
+Output,مخرجات
+Output VAT,ضريبة المخرجات
+Outstanding Amount,المبلغ المتبقي
+Overdue,متأخر
+POS Profile,بروفايل نقاط البيع
+Paid,مسدد
+Paid Amount,المبلغ المدفوع
+Partly Paid,مسدد جزئياً
+Party,الطرف
+Party Name,اسم الطرف
+Party Type,نوع الطرف
+Payment Entry,سند صرف/قبض
+Payments and Journals Only,السندات والقيود فقط
+Payroll Entry,قيد رواتب
+Please select at least one Tax Account to filter by.,يرجى تحديد حساب ضريبي واحد على الأقل.
+Posting Date,تاريخ الترحيل
+Previous Period Corrections,تصحيحات الفترات السابقة
+Previous Period VAT Correction (+ / -),تصحيح ضريبة فترات سابقة (+ / −)
+Print format is unavailable. Update the app and migrate the site.,صيغة الطباعة غير متاحة. حدّث التطبيق ونفّذ ترحيل الموقع.
+Private healthcare and education for citizens,الخدمات الصحية والتعليم الأهلي للمواطنين
+Product Cost,تكلفة المنتج
+Project,المشروع
+Provisional VAT Payable,صافي مستحق مبدئي
+Purchase Invoice,فاتورة مشتريات
+Purchase Invoices,فواتير المشتريات
+Purchase Receipt,سند استلام مشتريات
+Purchase Returns,مرتجعات المشتريات
+Purchases,المشتريات
+Purchases subject to the standard rate,المشتريات الخاضعة للنسبة الأساسية
+Reconcile GL,مطابقة الأستاذ
+Reconciliation,المطابقة
+"Reconciliation includes selected company, period, accounts and voucher before party, group and zero-net filters. Hidden rows are not accounting differences.",تشمل المطابقة الشركة والفترة والحسابات والمستند قبل فلاتر الطرف والمجموعة والصافي الصفري. الصفوف المخفية ليست فروقًا محاسبية.
+Remarks,الملاحظات
+Report,التقرير
+Return,مرتجع
+Return Box,بند الإقرار
+Return Layout Source,مرجع شكل الإقرار
+Return Status,حالة الإقرار
+Returns,المرتجعات
+Returns Only,المرتجعات فقط
+Reverse-charge imports,الاستيرادات وفق الاحتساب العكسي
+Review,المراجعة
+Review Warnings,تنبيهات المراجعة
+Review warnings:,تنبيهات المراجعة:
+Row Type,نوع الصف
+Sales,المبيعات
+Sales Invoice,فاتورة مبيعات
+Sales Invoice with Payment,فواتير المبيعات مع السداد
+Sales Invoices,فواتير المبيعات
+Sales Person,مندوب المبيعات
+Sales Person is mandatory,مندوب المبيعات إلزامي
+Sales Receipt,إيصال مبيعات
+Sales Returns,مرتجعات المبيعات
 Sales subject to the standard rate,المبيعات الخاضعة للنسبة الأساسية
+Sales to citizens: private healthcare and education,المبيعات للمواطنين: الخدمات الصحية والتعليم الأهلي
+Save,حفظ
+Section,قسم
+Separate Manual Additions — Do Not Duplicate Voucher Amounts,إضافات يدوية مستقلة — لا تكرر مبالغ المستندات أعلاه
+Settings,الإعدادات
+Settlements,السندات والقيود
+Shareholder,مساهم
+Show Cancelled Entries,إظهار القيود الملغاة
+Show Credit / Debit in Company Currency,إظهار الدائن / المدين بعملة الشركة
+Show Items,إظهار المنتجات
+Show Net Values in Party Account,إظهار صافي القيم في حساب الطرف
+Show Opening Entries,إظهار القيود الافتتاحية
+Show Remarks,إظهار الملاحظات
+Show Tax Account Details,تفصيل حسابات الضريبة
+Source document is unavailable; the amount comes from GL,المستند المصدر غير متاح؛ المبلغ مأخوذ من الأستاذ
+Standard-rated imports under reverse charge,الاستيرادات الخاضعة للنسبة الأساسية وفق الاحتساب العكسي
+Standard-rated imports with VAT paid at import,الاستيرادات الخاضعة للنسبة الأساسية والمدفوعة عند الاستيراد
+Standard-rated purchases,المشتريات بالنسبة الأساسية
+Stock Entry,قيد مخزون
+Stock Reconciliation,تسوية مخزون
+Student,طالب
+Subcontracting Receipt,سند استلام تعاقد باطن
+Submitted,معتمد
+Subtotal,إجمالي قسم
+Supplier,مورد
+Supplier Invoice No,رقم فاتورة المورد
+Tax,الضريبة
+Tax Account,حساب الضريبة
+Tax Accounts,حسابات الضريبة
+Tax Addition,إضافة للضريبة
+Tax Adjustment Amount,مبلغ تعديل الوعاء
+Tax Amount,مبلغ الضريبة
+Tax Detail,تفصيل ضريبة
+Tax Id,الرقم الضريبي
+Tax Report - Detailed,التقرير الضريبي - مفصل
+Tax Report - Summary,التقرير الضريبي - مختصر
+Tax Report - VAT Return,التقرير الضريبي - جدول الإقرار
+Tax Report Summary,ملخص التقرير الضريبي
+Tax account is unclassified,حساب ضريبة غير مصنف
+Tax base has not been entered or confirmed,الوعاء لم يُحدد أو يُعتمد
+Tax base is unavailable; a payment amount is not a tax base,الوعاء الضريبي غير متاح؛ مبلغ السداد ليس وعاءً ضريبيًا
+Tax sign differs from the invoice net direction,إشارة الضريبة تختلف عن اتجاه صافي الفاتورة
+Territory,المنطقة
+The company currency is not SAR; do not use these amounts for a Saudi VAT return.,عملة الشركة ليست الريال السعودي؛ لا تعتمد هذه الأرقام للإقرار.
+"The report has a restricted scope. Remove party, type, group and voucher filters and include zero-tax invoices and zero-net movements.",نطاق التقرير مقيد. أزل فلاتر الطرف والنوع والمجموعة والمستند، وأظهر الفواتير ذات الضرائب الصفرية والحركات ذات الصافي الصفري.
+The server did not return an Excel file,لم يُرجع الخادم ملف Excel
+"These are additions, not replacement totals. Explicitly enter zero for unused boxes after checking. Imports, deductions and corrections require review; no assumed tax rate is used.",الخانات هنا مبالغ إضافية وليست بديلًا عن الإجماليات المحسوبة. أدخل صفرًا صراحةً للبند غير المستخدم بعد التحقق. مبالغ الاستيراد والخصم والتصحيحات تحتاج مراجعة؛ لا يحسبها التقرير من نسبة مفترضة.
+To Date,إلى تاريخ
+To Time,إلى وقت
+Total,الإجمالي
+Total Purchases,إجمالي المشتريات
+Total Sales,إجمالي المبيعات
+Total {0},إجمالي {0}
+Transaction Currency,عملة المعاملة
+Type,النوع
+Unclassified,غير مصنف
+Unclassified (Net),غير مصنف (صافي)
+Unpaid,غير مسدد
+VAT Amount,مبلغ الضريبة
+VAT Payable (Provisional),صافي الضريبة المستحقة (مبدئي)
+VAT Registration Number,الرقم الضريبي
+VAT Return,الإقرار
+VAT Return Table,جدول إقرار ضريبة القيمة المضافة
+VAT registration number is missing,الرقم الضريبي غير متوفر
 Value,القيمة
+Visa,فيزا
+Visible Net,المعروض
+Voucher,المستند
+Voucher Details in Reconciliation Scope,تفاصيل المستندات ضمن نطاق المطابقة
+Voucher Entries,السندات الخارجية
+Voucher No,رقم المستند
+Voucher Subtype,النوع الفرعي للمستند
+Voucher Type,نوع المستند
+Vouchers Entry,قيد سندات
+Warnings,تنبيهات
+Wire Transfer,حوالة مصرفية
+Zero-rated purchases,المشتريات الصفرية

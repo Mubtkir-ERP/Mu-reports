@@ -324,6 +324,10 @@ def get_data(filters, payment_modes):
         net_total = row.net_total or 0
         row.net_profit = net_total - row.product_cost
 
+        # ترجمة حالة الفاتورة حسب لغة الواجهة
+        if row.status:
+            row.status = _(row.status)
+
     return invoice_data
 
 

@@ -2,6 +2,7 @@
 const fs=require('fs');const vm=require('vm');const assert=require('assert');
 const trans={}; // Localization is supplied by Frappe at runtime.
 trans['Export Excel']='تصدير Excel'; trans['Total Sales Invoices']='إجمالي فواتير المبيعات'; trans['Sales Invoice']='فاتورة مبيعات';
+trans['Review']='المراجعة';
 let lang='en';global.__=(text,args=[])=>{let s=lang==='ar'?(trans[text]||text):text;return s.replace(/\{(\d+)\}/g,(_,n)=>args[n]??'');};
 const escape=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 global.frappe={utils:{is_rtl:()=>lang==='ar',escape_html:escape},format:v=>v===''?'':Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
@@ -33,12 +34,13 @@ const script=fs.readFileSync(root+'/mu_reports/mu_reports/report/all_tax_report/
 const buttons=[];const filters={company:'Co',from_date:'2026-10-01',to_date:'2026-10-31',tax_accounts:['VAT']};
 const settings={};const events=[];
 let toolbarButtons=[];
-const toolbar={find:()=>({length:toolbarButtons.filter(b=>b.marker==='1').length,
- text(label){toolbarButtons.filter(b=>b.marker==='1').forEach(b=>b.label=label);return this;},attr(){return this;}}),removeClass(){return this;}};
+const toolbar={find:(selector)=>({length:toolbarButtons.filter(b=>b.group===selector).length,
+ text(label){toolbarButtons.filter(b=>b.marker==='1').forEach(b=>b.label=label);return this;},attr(){return this;},
+ each(cb){toolbarButtons.forEach((b,i)=>cb.call({find:()=>({text:()=>b.group||''})},i));}}),removeClass(){return this;}};
 const report={report_name:'All Tax Report',_no_refresh:true,page:{inner_toolbar:toolbar,add_inner_button:(...a)=>{
- buttons.push(a);const b={label:a[0],marker:null};toolbarButtons.push(b);return {attr(k,v){if(k==='data-tax-export')b.marker=v;return this;}};
+ buttons.push(a);const b={label:a[0],group:a[2]};toolbarButtons.push(b);return {attr(k,v){return this;}};
 }},
- get_filter_values:()=>filters,get_filter:field=>({set_value:async val=>{filters[field]=val}}),refresh:async()=>{toolbarButtons=[];},
+ get_filter_values:()=>filters,get_filter:field=>({set_value:val=>{filters[field]=val}}),refresh:async()=>{toolbarButtons=[];},
  print_report:async s=>events.push(['print',s]),pdf_report:async s=>events.push(['pdf',s])};
 const context={console,__:global.__,localStorage:{getItem:()=>null},frappe:{...global.frappe,boot:{lang:'en'},query_reports:{},query_report:report,session:{user:'test'},
  datetime:{month_start:()=>'',get_today:()=>''},defaults:{get_user_default:()=>''},call:async args=>{events.push(args);return {message:{header:'<h1>Rendered</h1>'}};}}};
@@ -46,6 +48,7 @@ vm.createContext(context);vm.runInContext(script,context);vm.runInContext(script
 (async()=>{
  await context.frappe.query_reports['All Tax Report'].onload(report);
  assert(!buttons.some(b=>/Print|طباعة/.test(b[0])));
+ assert(!buttons.some(b=>/Export Excel|تصدير Excel/.test(b[0])));
  assert(events.length===0);
  await report.print_report({with_letter_head:1,letter_head_name:'Test Head'});
  assert(events[0].method.endsWith('render_report_letter_head'));
@@ -53,11 +56,9 @@ vm.createContext(context);vm.runInContext(script,context);vm.runInContext(script
  const count=events.length;await report.pdf_report({with_letter_head:0});assert(events.length===count+1);
  for(lang of ['ar','en','ar']) {
   await report.refresh();
-  assert.strictEqual(toolbarButtons.filter(b=>b.marker==='1').length,1);
-  assert.strictEqual(toolbarButtons.find(b=>b.marker==='1').label,global.__('Export Excel'));
-  await report.refresh();assert.strictEqual(toolbarButtons.filter(b=>b.marker==='1').length,1);
+  assert(toolbarButtons.some(b=>b.group===global.__('Review')));
  }
  report.report_name='Other Report';await report.print_report({with_letter_head:1,letter_head_name:'Other Head'});assert(events.at(-1)[0]==='print');
  await report.refresh();assert.strictEqual(toolbarButtons.length,0);
- console.log('PASS: all native JS templates compile/render in Arabic and English, language directions, translated types/totals, numeric totals, escaping, repeated script loading, no custom print buttons, native Print/PDF letter-head delegation and other-report isolation.');
+ console.log('PASS: all native JS templates compile/render in Arabic and English, no export button, review button persistence, language directions, translated types/totals, numeric totals, escaping, repeated script loading, no custom print buttons, native Print/PDF letter-head delegation and other-report isolation.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

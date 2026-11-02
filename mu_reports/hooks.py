@@ -251,5 +251,7 @@ override_whitelisted_methods = {
 
 # Report Print Formats are imported by install/migrate. No custom print buttons.
 fixtures = [{"dt": "Print Format", "filters": [["name", "in", [
-    "All Tax Report - Summary", "All Tax Report - Detailed", "All Tax Report - VAT Return"
+    "All Tax Report - Summary", "All Tax Report - Detailed", "All Tax Report - VAT Return",
+    "Tax Report - Summary", "Tax Report - Detailed", "Tax Report - VAT Return"
 ]]]}]
+
